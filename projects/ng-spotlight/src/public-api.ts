@@ -53,3 +53,12 @@ export {
   SpotlightDefaultInput,
   SpotlightDefaultRow,
 } from './lib/parts/default-parts';
+export { SpotlightHost } from './lib/spotlight-host';
+export {
+  SpotlightEmptyTemplate,
+  SpotlightFooterTemplate,
+  SpotlightItemTemplate,
+  SpotlightTrigger,
+  type SpotlightEmptyTemplateContext,
+  type SpotlightItemTemplateContext,
+} from './lib/templates';

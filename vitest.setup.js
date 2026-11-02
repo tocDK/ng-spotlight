@@ -7,3 +7,11 @@ getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting(),
   errorOnUnknownElements: true,
   errorOnUnknownProperties: true,
 });
+
+// jsdom has no canvas; axe's colour-contrast rule probes getContext and logs a "not implemented" error.
+HTMLCanvasElement.prototype.getContext = () => null;
+
+// jsdom's CSS parser rejects the CDK overlay's `@layer` rule and reports it on stderr; drop only that noise.
+const writeStderr = process.stderr.write.bind(process.stderr);
+process.stderr.write = (chunk, ...rest) =>
+  String(chunk).startsWith('Error: Could not parse CSS stylesheet') ? true : writeStderr(chunk, ...rest);
