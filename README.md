@@ -105,11 +105,14 @@ provideSpotlight({
 - Any object implementing `SpotlightSource` is a source: `search(query, ctx)` may return items, a promise or an
   Observable, and should stop when `ctx.signal` aborts.
 
-Each item has an `action`: `{ route }` (Router), `{ url, newTab? }` (only http, https, mailto, tel and relative URLs
-are allowed) or `{ run }`. A query that starts with a source's `prefix` (for example `#` or `@`) searches only that source.
+Each item has an `action`: `{ route }` (Router), `{ url, newTab? }` (only http, https, mailto, tel and path-relative
+URLs are allowed; protocol-relative `//host` URLs are blocked) or `{ run }`. The palette waits up to 5 seconds for a
+`run()` promise, then closes anyway; `selected` fires when it settles. A query that starts with a source's `prefix` (for example `#` or `@`) searches only that source.
 Call `provideSpotlight()` again in a lazy route's `providers` to add sources for that area. Such a child call only
 adds `sources` (and `http` defaults for them); its `texts`, `hotkeys`, `recent`, `theme` and `onError` are ignored
 (with a dev-mode warning) because the first call owns them. Pass `isolated: true` for a separate palette instead.
+With several palettes on a page, one hotkey press reaches exactly one of them: the open one (so the hotkey closes it),
+else the one opened most recently, else the `<spotlight-host>` created first. Place one `<spotlight-host>` per palette.
 
 ## CI check for unlabelled routes
 
@@ -155,6 +158,24 @@ labelled `role="group"`s and `role="option"`s, a focus trap with focus restore, 
 count. Keys: ↑/↓ move, Enter opens, Ctrl/⌘+Enter opens links in a new tab, Tab/Shift+Tab switch chips, Esc closes.
 The tests run axe on the open palette with zero violations. Note: macOS may use Ctrl+Space to switch input source,
 which is why ⌘K is in the default set.
+
+## API
+
+The whole public API, with every member, is snapshotted in [`api/ng-spotlight.api.md`](api/ng-spotlight.api.md) and
+[`api/ng-spotlight-primeng.api.md`](api/ng-spotlight-primeng.api.md); CI fails when the built `.d.ts` drifts from them.
+
+| Export | What it is |
+|---|---|
+| `provideSpotlight(config \| () => config)` | Sets up a palette (`SpotlightConfig`: `hotkeys`, `texts`, `recent`, `http`, `theme`, `onError`, `sources`, `isolated`) |
+| `SpotlightService` | `open(query?)`, `close()`, `isOpen` (signal), `selected` (Observable of the chosen item). Nothing else is public |
+| `<spotlight-host>`, `spotlightTrigger` | The palette, and a directive that opens it on click (`spotlightTrigger="#"` sets a query) |
+| `spotlightItem`, `spotlightEmpty`, `spotlightFooter` | Templates, with `SpotlightItemTemplateContext` and `SpotlightEmptyTemplateContext` |
+| `routeSource`, `staticSource`, `httpSource`, `spotlightRouteAudit` | Built-in sources and the route audit, with their `*Options` types |
+| `SpotlightItem`, `SpotlightItemInput`, `SpotlightAction`, `SpotlightBadge`, `SpotlightSource`, `SpotlightContext`, `SpotlightResult`, `SpotlightResponse`, `SpotlightGroup`, `SpotlightHttpOptions`, `SpotlightHttpRequest`, `SpotlightRouteData` | Data types |
+| `SpotlightTexts`, `SpotlightTextValue` | UI strings (keys left out keep their English defaults) |
+| `localStorageRecent`, `SpotlightRecentStorage`, `SpotlightRecentEntry`, `SpotlightStoredAction` | Recent items and their storage |
+| `SPOTLIGHT_RENDERER`, `SpotlightRenderer`, the part context types, `SpotlightDefault*` parts | Renderer contract for adapters |
+| `/primeng`: `provideSpotlightPrimeNG()`, `SPOTLIGHT_PRIMENG_RENDERER`, `SpotlightPrimeNg*` parts | PrimeNG adapter |
 
 ## Packages
 

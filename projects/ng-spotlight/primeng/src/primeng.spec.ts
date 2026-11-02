@@ -4,7 +4,8 @@ import { provideRouter } from '@angular/router';
 import { provideSpotlight, SpotlightHost, SpotlightService, staticSource } from '@tocdk/ng-spotlight';
 import { providePrimeNG } from 'primeng/config';
 import { expectNoAxeViolations, memoryRecent } from '../../src/lib/testing.spec-util';
-import { provideSpotlightPrimeNG, toneToSeverity } from './public-api';
+import { toneToSeverity } from './primeng-parts';
+import { provideSpotlightPrimeNG } from './public-api';
 
 @Component({ imports: [SpotlightHost], template: '<spotlight-host />' })
 class Wrapper {}

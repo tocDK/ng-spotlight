@@ -84,6 +84,7 @@ export const SPOTLIGHT_PRIMENG_CSS = `
 export class SpotlightPrimeNgInput {
   readonly ctx = input.required<SpotlightInputContext>();
 
+  /** @internal */
   protected onInput(event: Event): void {
     this.ctx().onInput((event.target as HTMLInputElement).value);
   }
@@ -132,6 +133,7 @@ export class SpotlightPrimeNgGroupHeader {
 })
 export class SpotlightPrimeNgBadge {
   readonly ctx = input.required<SpotlightBadgeContext>();
+  /** @internal */
   protected readonly severity = computed(() => toneToSeverity(this.ctx().badge.tone));
 }
 

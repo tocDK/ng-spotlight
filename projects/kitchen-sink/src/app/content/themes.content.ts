@@ -31,7 +31,7 @@ providers: [providePrimeNG({ theme: { preset: Aura } }), provideSpotlight({ … 
 \`\`\`
 
 The palette then renders with \`p-iconfield\` + \`pInputText\`, \`p-chip\`, \`p-tag\` and \`pi\` icon classes, and takes its
-colours from the PrimeNG preset (\`SPOTLIGHT_PRIMENG_CSS\` maps the \`--sp-*\` variables to PrimeNG tokens), so white-label
+colours from the PrimeNG preset (the adapter maps the \`--sp-*\` variables to PrimeNG tokens), so white-label
 presets apply. Apps that never import \`/primeng\` never load PrimeNG. A test keeps its accessibility tree identical to the core's.
       `,
     },

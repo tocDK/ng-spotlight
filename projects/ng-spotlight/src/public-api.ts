@@ -1,6 +1,5 @@
-// Public API for @tocdk/ng-spotlight
-
-export { VERSION } from './lib/version';
+// Public API for @tocdk/ng-spotlight. Every change here must show up in api/ng-spotlight.api.md
+// (npm run check:api). Members tagged internal in their JSDoc are stripped from the published .d.ts.
 
 export type {
   SpotlightAction,
@@ -23,7 +22,6 @@ export type {
   SpotlightTextValue,
 } from './lib/types';
 export { localStorageRecent } from './lib/recent';
-export { DEFAULT_SPOTLIGHT_TEXTS } from './lib/texts';
 export { staticSource, type StaticSourceOptions } from './lib/sources/static-source';
 export { routeSource, type RouteSourceOptions } from './lib/sources/route-source';
 export type { SpotlightRouteData } from './lib/sources/route-walk';
@@ -33,10 +31,9 @@ export {
   type SpotlightRouteAuditOptions,
 } from './lib/sources/route-audit';
 export { httpSource, type HttpSourceOptions } from './lib/sources/http-source';
-export type { SpotlightGroupState } from './lib/engine';
 
 export { provideSpotlight } from './lib/provide-spotlight';
-export { SpotlightService, type SpotlightChip, type SpotlightOption } from './lib/spotlight.service';
+export { SpotlightService } from './lib/spotlight.service';
 export {
   SPOTLIGHT_RENDERER,
   type SpotlightBadgeContext,

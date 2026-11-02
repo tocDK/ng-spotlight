@@ -143,6 +143,7 @@ const PHONE_QUERY = '(max-width: 600px)';
   `,
 })
 export class SpotlightHost {
+  /** @internal */
   protected readonly svc = inject(SpotlightService);
   private readonly overlay = inject(Overlay);
   private readonly focusTrapFactory = inject(FocusTrapFactory);
@@ -157,8 +158,11 @@ export class SpotlightHost {
     openedAt: 0,
   };
 
+  /** @internal */
   protected readonly parts = resolveParts(inject(SPOTLIGHT_RENDERER, { optional: true }));
+  /** @internal */
   protected readonly themeDefault = this.svc.settings.theme === 'default';
+  /** @internal */
   protected readonly ids = {
     prefix: this.svc.idPrefix,
     input: `${this.svc.idPrefix}-input`,
@@ -167,15 +171,19 @@ export class SpotlightHost {
 
   private readonly panel = viewChild.required<TemplateRef<unknown>>('panel');
   private readonly itemTemplates = contentChildren(SpotlightItemTemplate);
+  /** @internal */
   protected readonly emptyTemplate = contentChild(SpotlightEmptyTemplate);
+  /** @internal */
   protected readonly footerTemplate = contentChild(SpotlightFooterTemplate);
 
   private overlayRef: OverlayRef | null = null;
   private focusTrap: FocusTrap | null = null;
   private restoreFocus: HTMLElement | null = null;
 
+  /** @internal */
   protected readonly activeId = computed(() => this.svc.activeOption()?.domId ?? null);
 
+  /** @internal */
   protected readonly optionsByGroup = computed(() => {
     const byGroup = new Map<string, SpotlightOption[]>();
     for (const option of this.svc.options()) {
@@ -186,6 +194,7 @@ export class SpotlightHost {
     return byGroup;
   });
 
+  /** @internal */
   protected readonly showEmpty = computed(
     () => this.svc.query().trim() !== '' && this.svc.options().length === 0 && !this.svc.loading(),
   );
@@ -193,6 +202,7 @@ export class SpotlightHost {
   private readonly handleInput = (value: string): void => this.svc.setQuery(value);
   private readonly handleKeydown = (event: KeyboardEvent): void => this.onInputKeydown(event);
 
+  /** @internal */
   protected readonly inputCtx = computed<SpotlightInputContext>(() => ({
     id: this.ids.input,
     value: this.svc.query(),
@@ -230,16 +240,18 @@ export class SpotlightHost {
     });
   }
 
+  /** @internal */
   protected get texts() {
     return this.svc.texts;
   }
 
-  /** A placeholder header already reads "Loading…"; don't announce it twice. */
+  /** @internal A placeholder header already reads "Loading…"; don't announce it twice. */
   protected loadingTextFor(label: string): string {
     const loading = this.texts.loading();
     return label === loading ? '' : loading;
   }
 
+  /** @internal */
   protected templateFor(groupId: string): TemplateRef<SpotlightItemTemplateContext> | null {
     const templates = this.itemTemplates();
     const match =
@@ -247,10 +259,12 @@ export class SpotlightHost {
     return match?.template ?? null;
   }
 
+  /** @internal */
   protected choose(option: SpotlightOption, event: MouseEvent): void {
     void this.svc.select(option, { newTab: event.ctrlKey || event.metaKey });
   }
 
+  /** @internal */
   protected onDocumentKeydown(event: KeyboardEvent): void {
     if (!this.svc.settings.hotkeys.some((hotkey) => matchesHotkey(event, hotkey))) return;
     event.preventDefault();

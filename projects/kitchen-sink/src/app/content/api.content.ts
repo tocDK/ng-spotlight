@@ -1,6 +1,6 @@
 import type { PageContent } from '../shared/page-content.types';
 
-/** Every public export, so scripts/check-docs.mjs can enforce that the docs keep up. */
+/** Every public export, so scripts/check-docs.mjs can enforce that the docs keep up. The exact surface is api/*.api.md. */
 export const API_CONTENT: PageContent = {
   title: 'API reference',
   sections: [
@@ -11,13 +11,12 @@ export const API_CONTENT: PageContent = {
 | Export | What it is |
 |---|---|
 | \`provideSpotlight(config \\| () => config)\` | Environment providers. \`SpotlightConfig\`: \`hotkeys\`, \`texts\`, \`recent\`, \`http\`, \`theme\`, \`onError\`, \`sources\`, \`isolated\` |
-| \`SpotlightService\` | \`open(query?)\`, \`close()\`, \`isOpen\`, \`selected\`, plus the state used by renderers (\`groups\`, \`options\`, \`chips\`, …) |
+| \`SpotlightService\` | \`open(query?)\`, \`close()\`, \`isOpen\` (signal), \`selected\` (Observable); nothing else is public |
 | \`SpotlightHost\` | \`<spotlight-host>\`, place once in the shell |
 | \`SpotlightTrigger\` | \`spotlightTrigger\` directive: opens the palette on click |
 | \`SpotlightItemTemplate\`, \`SpotlightItemTemplateContext\` | \`<ng-template spotlightItem="group" let-item>\` row templates |
 | \`SpotlightEmptyTemplate\`, \`SpotlightEmptyTemplateContext\` | \`<ng-template spotlightEmpty let-query>\` |
 | \`SpotlightFooterTemplate\` | \`<ng-template spotlightFooter>\` |
-| \`VERSION\` | The library version |
       `,
     },
     {
@@ -31,7 +30,6 @@ export const API_CONTENT: PageContent = {
 | \`SpotlightBadge\`, \`SpotlightBadgeTone\` | \`{ label, tone?: 'info' \\| 'success' \\| 'warn' \\| 'danger' }\` |
 | \`SpotlightSource\`, \`SpotlightContext\` | A source and the context its \`search(query, ctx)\` receives (\`signal\`, \`chip\`, \`injector\`) |
 | \`SpotlightResult\`, \`SpotlightResponse\`, \`SpotlightGroup\` | \`SpotlightItem[]\` or \`{ groups: [{ id, label, total?, items }] }\` |
-| \`SpotlightGroupState\`, \`SpotlightOption\`, \`SpotlightChip\` | Rendered state: groups with loading/error, selectable rows, chips |
 | \`SpotlightConfig\` | The \`provideSpotlight\` options |
       `,
     },
@@ -54,7 +52,7 @@ export const API_CONTENT: PageContent = {
       markdown: `
 | Export | What it is |
 |---|---|
-| \`SpotlightTexts\`, \`SpotlightTextValue\`, \`DEFAULT_SPOTLIGHT_TEXTS\` | Every UI string; a value is a string, Signal or Observable |
+| \`SpotlightTexts\`, \`SpotlightTextValue\` | Every UI string; a value is a string, Signal or Observable; keys left out keep their English defaults |
 | \`SpotlightRecentStorage\`, \`SpotlightRecentEntry\`, \`localStorageRecent(key)\` | Where Recent items live |
       `,
     },
@@ -75,10 +73,9 @@ export const API_CONTENT: PageContent = {
       markdown: `
 | Export | What it is |
 |---|---|
-| \`provideSpotlightPrimeNG()\`, \`SPOTLIGHT_PRIMENG_RENDERER\` | Renders the palette with PrimeNG components |
+| \`provideSpotlightPrimeNG()\` | Renders the palette with PrimeNG components |
+| \`SPOTLIGHT_PRIMENG_RENDERER\` | The adapter's \`SpotlightRenderer\`, to spread into your own (e.g. replace only \`row\`) |
 | \`SpotlightPrimeNgInput\`, \`SpotlightPrimeNgChip\`, \`SpotlightPrimeNgGroupHeader\`, \`SpotlightPrimeNgRow\`, \`SpotlightPrimeNgBadge\` | The PrimeNG parts |
-| \`toneToSeverity\`, \`SpotlightPrimeTagSeverity\` | Badge tone → \`p-tag\` severity |
-| \`SPOTLIGHT_PRIMENG_CSS\` | The \`--sp-*\` → PrimeNG token mapping |
       `,
     },
   ],

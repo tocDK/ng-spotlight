@@ -98,7 +98,7 @@ export class SpotlightService {
   /** Incremented on every open(), so a late action never closes a palette opened after it. */
   private session = 0;
 
-  /** Prefix for this instance's DOM ids. */
+  /** @internal Prefix for this instance's DOM ids. */
   readonly idPrefix = `sp-${nextInstanceId++}`;
 
   private _settings: SpotlightSettings = {
@@ -113,8 +113,10 @@ export class SpotlightService {
   private readonly _isOpen = signal(false);
   readonly isOpen = this._isOpen.asReadonly();
   private readonly _query = signal('');
+  /** @internal */
   readonly query = this._query.asReadonly();
   private readonly _chip = signal<string | null>(null);
+  /** @internal */
   readonly chip = this._chip.asReadonly();
   private readonly _results = signal<readonly SpotlightGroupState[]>([]);
   private readonly _recent = signal<readonly SpotlightRecentEntry[]>([]);
@@ -140,7 +142,7 @@ export class SpotlightService {
     return out;
   });
 
-  /** Visible groups: Recent first on the empty query, then the sources' groups. */
+  /** @internal Visible groups: Recent first on the empty query, then the sources' groups. */
   readonly groups = computed<readonly SpotlightGroupState[]>(() => {
     const results = this._results();
     if (this._query().trim() !== '' || this._chip() !== null) return results;
@@ -162,7 +164,7 @@ export class SpotlightService {
     return [recentGroup, ...rest];
   });
 
-  /** Every selectable row in display order, including one retry row per failed source. */
+  /** @internal Every selectable row in display order, including one retry row per failed source. */
   readonly options = computed<readonly SpotlightOption[]>(() => {
     const out: SpotlightOption[] = [];
     const recent = this.recentItems();
@@ -195,6 +197,7 @@ export class SpotlightService {
     return out;
   });
 
+  /** @internal */
   readonly activeIndex = computed(() => {
     const options = this.options();
     if (options.length === 0) return -1;
@@ -204,15 +207,19 @@ export class SpotlightService {
     return index === -1 ? 0 : index;
   });
 
+  /** @internal */
   readonly activeOption = computed<SpotlightOption | null>(() => {
     const index = this.activeIndex();
     return index === -1 ? null : this.options()[index];
   });
 
+  /** @internal */
   readonly chips = computed<readonly SpotlightChip[]>(() => [{ id: null, label: this.texts.all() }, ...this._chipGroups()]);
 
+  /** @internal */
   readonly loading = computed(() => this._results().some((g) => g.loading));
 
+  /** @internal */
   readonly announcement = computed(() => {
     const count = this.options().filter((o) => o.kind === 'item').length;
     // Announce "Loading…" rather than "No results" while sources are still answering.
@@ -227,10 +234,12 @@ export class SpotlightService {
     });
   }
 
+  /** @internal */
   get texts(): ResolvedSpotlightTexts {
     return this._texts();
   }
 
+  /** @internal */
   get settings(): Readonly<SpotlightSettings> {
     return this._settings;
   }
@@ -307,23 +316,27 @@ export class SpotlightService {
     this._activeKey.set(null);
   }
 
+  /** @internal */
   toggle(): void {
     if (this._isOpen()) this.close();
     else this.open();
   }
 
+  /** @internal */
   setQuery(query: string): void {
     this._query.set(query);
     this._activeKey.set(null);
     this.input$.next({ query, chip: this._chip() });
   }
 
+  /** @internal */
   setChip(chip: string | null): void {
     this._chip.set(chip);
     this._activeKey.set(null);
     this.input$.next({ query: this._query(), chip });
   }
 
+  /** @internal */
   cycleChip(direction: 1 | -1): void {
     const chips = this.chips();
     if (chips.length < 2) return;
@@ -331,6 +344,7 @@ export class SpotlightService {
     this.setChip(chips[(index + direction + chips.length) % chips.length].id);
   }
 
+  /** @internal */
   moveActive(delta: number): void {
     const options = this.options();
     if (options.length === 0) return;
@@ -339,15 +353,17 @@ export class SpotlightService {
     this._activeKey.set(options[next].key);
   }
 
+  /** @internal */
   setActive(key: string): void {
     this._activeKey.set(key);
   }
 
+  /** @internal */
   retry(sourceId: string): void {
     this.retry$.next(sourceId);
   }
 
-  /** Runs the action, records Recent, closes and emits `selected` (spec §5.9). */
+  /** @internal Runs the action, records Recent, closes and emits `selected` (spec §5.9). */
   async select(option: SpotlightOption, modifiers: { newTab?: boolean } = {}): Promise<void> {
     if (option.kind === 'retry' || option.item === null) {
       this.retry(option.sourceId);
