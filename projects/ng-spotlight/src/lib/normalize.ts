@@ -69,41 +69,68 @@ export function isValidItem(value: unknown): value is SpotlightItem {
   return suggested === undefined || typeof suggested === 'boolean';
 }
 
+/** Optional item fields that JSON backends commonly send as `null` to mean "absent". */
+const NULLABLE_FIELDS = ['subtitle', 'icon', 'keywords', 'badges', 'suggested', 'data'] as const;
+
+/** Strips `null` optional fields, then validates. Returns null for an invalid item. */
+function toItem(value: unknown): SpotlightItem | null {
+  if (typeof value !== 'object' || value === null) return null;
+  let candidate = value as Record<string, unknown>;
+  if (NULLABLE_FIELDS.some((key) => candidate[key] === null)) {
+    candidate = { ...candidate };
+    for (const key of NULLABLE_FIELDS) if (candidate[key] === null) delete candidate[key];
+  }
+  return isValidItem(candidate) ? candidate : null;
+}
+
 /**
  * Turns whatever a source returned into validated groups. Invalid items and groups are
- * dropped; a value that is not a result at all throws SpotlightResultError, which the
- * engine turns into an error row for that source only.
+ * dropped, `null` optional fields count as absent, and a later item whose `group::id` was
+ * already seen is dropped (ids must be unique per group). Grouped responses that repeat a
+ * group id merge into the first group with that id. A value that is not a result at all
+ * throws SpotlightResultError, which the engine turns into an error row for that source only.
  */
 export function normalizeResult(result: unknown, fallbackGroup: string): NormalizedGroup[] {
+  const byGroup = new Map<string, NormalizedGroup>();
+  const seen = new Set<string>();
+  const add = (group: NormalizedGroup, raw: unknown): void => {
+    const item = toItem(raw);
+    if (item === null) return;
+    const key = `${group.id}::${item.id}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    group.items.push({ ...item, group: group.id });
+  };
   if (Array.isArray(result)) {
-    const byGroup = new Map<string, SpotlightItem[]>();
     for (const raw of result as unknown[]) {
-      if (!isValidItem(raw)) continue;
-      const group = typeof raw.group === 'string' && raw.group !== '' ? raw.group : fallbackGroup;
-      const list = byGroup.get(group) ?? [];
-      list.push({ ...raw, group });
-      byGroup.set(group, list);
+      const rawGroup = (raw as { group?: unknown } | null)?.group;
+      const id = typeof rawGroup === 'string' && rawGroup !== '' ? rawGroup : fallbackGroup;
+      let group = byGroup.get(id);
+      if (!group) {
+        group = { id, label: id, items: [] };
+        byGroup.set(id, group);
+      }
+      add(group, raw);
     }
-    return [...byGroup].map(([id, items]) => ({ id, label: id, items }));
+    return [...byGroup.values()].filter((g) => g.items.length > 0);
   }
   if (isSpotlightResponse(result)) {
-    const groups: NormalizedGroup[] = [];
     for (const rawGroup of result.groups as unknown[]) {
       if (typeof rawGroup !== 'object' || rawGroup === null) continue;
       const g = rawGroup as Record<string, unknown>;
       const id = g['id'];
       if (typeof id !== 'string' || id === '') continue;
+      let group = byGroup.get(id);
+      if (!group) {
+        group = { id, label: typeof g['label'] === 'string' ? g['label'] : id, items: [] };
+        const total = g['total'];
+        if (typeof total === 'number' && Number.isInteger(total) && total >= 0) group.total = total;
+        byGroup.set(id, group);
+      }
       const rawItems: unknown[] = Array.isArray(g['items']) ? (g['items'] as unknown[]) : [];
-      const group: NormalizedGroup = {
-        id,
-        label: typeof g['label'] === 'string' ? g['label'] : id,
-        items: rawItems.filter(isValidItem).map((item) => ({ ...item, group: id })),
-      };
-      const total = g['total'];
-      if (typeof total === 'number' && Number.isInteger(total) && total >= 0) group.total = total;
-      groups.push(group);
+      for (const raw of rawItems) add(group, raw);
     }
-    return groups;
+    return [...byGroup.values()];
   }
   throw new SpotlightResultError(
     '[ng-spotlight] a source returned something that is neither SpotlightItem[] nor { groups: SpotlightGroup[] }',

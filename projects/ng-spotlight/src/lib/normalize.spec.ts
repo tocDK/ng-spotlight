@@ -135,6 +135,52 @@ describe('optional field validation', () => {
   });
 });
 
+describe('duplicate ids', () => {
+  it('keeps the first item per group::id in the flat-array path', () => {
+    const groups = normalizeResult(
+      [item('1', 'Pages', { title: 'first' }), item('1', 'Pages', { title: 'second' }), item('1', 'Commands')],
+      'f',
+    );
+    expect(groups.map((g) => [g.id, g.items.map((i) => i.title)])).toEqual([
+      ['Pages', ['first']],
+      ['Commands', ['Title 1']],
+    ]);
+  });
+
+  it('merges repeated group ids into the first group and drops repeated item ids', () => {
+    const groups = normalizeResult(
+      {
+        groups: [
+          { id: 'g', label: 'First', total: 3, items: [item('a', 'g'), item('a', 'g', { title: 'dup' })] },
+          { id: 'h', label: 'H', items: [item('a', 'h')] },
+          { id: 'g', label: 'Second', total: 9, items: [item('b', 'g'), item('a', 'g', { title: 'dup again' })] },
+        ],
+      },
+      'f',
+    );
+    expect(groups.map((g) => [g.id, g.label, g.total, g.items.map((i) => `${i.id}:${i.title}`)])).toEqual([
+      ['g', 'First', 3, ['a:Title a', 'b:Title b']],
+      ['h', 'H', undefined, ['a:Title a']],
+    ]);
+  });
+});
+
+describe('null optional fields', () => {
+  const nulls = { subtitle: null, icon: null, keywords: null, badges: null, suggested: null, data: null };
+
+  it('treats null optional fields as absent in both paths', () => {
+    const raw = { id: 'x', title: 'X', action: { route: '/x' }, ...nulls };
+    const expected = { id: 'x', title: 'X', group: 'g', action: { route: '/x' } };
+    expect(normalizeResult([{ ...raw, group: 'g' }], 'f')[0].items).toEqual([expected]);
+    expect(normalizeResult({ groups: [{ id: 'g', label: 'G', items: [raw] }] }, 'f')[0].items).toEqual([expected]);
+  });
+
+  it('still drops an item whose optional field has the wrong type', () => {
+    const raw = { id: 'x', title: 'X', action: { route: '/x' }, subtitle: null, icon: 3 };
+    expect(normalizeResult([raw], 'f')).toEqual([]);
+  });
+});
+
 describe('group total', () => {
   it.each([1.5, -1, Number.NaN, '3'])('ignores a total of %s', (total) => {
     const groups = normalizeResult({ groups: [{ id: 'g', label: 'G', total, items: [] }] }, 'f');

@@ -27,6 +27,15 @@ const routes: Routes = [
       { path: 'unlabelled', component: Dummy },
     ],
   },
+  { path: 'settings', data: { breadcrumb: 'Settings' }, children: [{ path: 'profile', component: Dummy, title: 'Profile' }] },
+  {
+    path: 'billing',
+    title: 'Billing',
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'invoices' },
+      { path: 'invoices', component: Dummy },
+    ],
+  },
   { path: 'lazy', loadChildren: () => Promise.resolve(lazyChildren) },
   { matcher: () => null, component: Dummy, title: 'Matcher' },
   { path: '**', component: Dummy, title: 'Not found' },
@@ -49,7 +58,15 @@ describe('routeSource', () => {
       ['/resolved-title', 'Resolved fallback'],
       ['/admin/users', 'Users'],
       ['/reports', 'Report overview'],
+      ['/settings/profile', 'Profile'],
+      ['/billing', 'Billing'],
     ]);
+  });
+
+  it('skips a labelled parent that is not a page but keeps its labelled children', () => {
+    const items = search();
+    expect(items.some((i) => i.title === 'Settings')).toBe(false);
+    expect(items.find((i) => i.title === 'Profile')).toMatchObject({ subtitle: '/settings/profile' });
   });
 
   it('builds route items with keywords, suggestion flag and a route action', () => {

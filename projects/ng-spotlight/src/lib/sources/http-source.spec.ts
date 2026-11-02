@@ -30,6 +30,12 @@ const response = { groups: [{ id: 'customers', label: 'Customers', items: [] }] 
 describe('httpSource', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
+  it('keeps the remote defaults when options are explicitly undefined', () => {
+    setup();
+    const source = httpSource({ url: '/api/search', minLength: undefined, debounceMs: undefined, local: undefined, id: undefined });
+    expect(source).toMatchObject({ id: 'http:/api/search', minLength: 2, debounceMs: 150, local: false });
+  });
+
   it('has remote defaults', () => {
     setup();
     expect(httpSource({ url: '/api/search' })).toMatchObject({ id: 'http:/api/search', minLength: 2, debounceMs: 150, local: false });

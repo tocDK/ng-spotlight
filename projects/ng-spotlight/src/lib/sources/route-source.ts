@@ -14,8 +14,10 @@ export interface RouteSourceOptions {
 }
 
 /**
- * Every labelled static route, including lazy children once loaded. A deeper route with the
- * same URL (an empty-path child) wins over its parent. Results are local.
+ * Every labelled static route that is a page, including lazy children once loaded. A labelled
+ * parent that renders nothing at its own URL (no component, no empty-path child) is skipped;
+ * its labelled children still appear. A deeper route with the same URL (an empty-path child)
+ * wins over its parent. Results are local.
  */
 export function routeSource(options: RouteSourceOptions = {}): SpotlightSource {
   const group = options.group ?? 'Pages';
@@ -29,7 +31,7 @@ export function routeSource(options: RouteSourceOptions = {}): SpotlightSource {
       const router = ctx.injector.get(Router);
       const byUrl = new Map<string, SpotlightItem>();
       for (const entry of walkRoutes(router.config, true)) {
-        if (entry.optedOut || entry.hasParam || entry.label === null) continue;
+        if (entry.optedOut || entry.hasParam || entry.label === null || !entry.routable) continue;
         if (options.filter && !options.filter(entry.route, entry.url)) continue;
         byUrl.set(entry.url, {
           id: `route:${entry.url}`,

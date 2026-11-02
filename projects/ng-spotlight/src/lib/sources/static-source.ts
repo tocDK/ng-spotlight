@@ -11,7 +11,16 @@ export interface StaticSourceOptions {
 
 /** Fixed commands. Results are local: the library ranks and filters them. */
 export function staticSource(options: StaticSourceOptions): SpotlightSource {
-  const items: SpotlightItem[] = options.items.map((item) => ({ ...item, group: item.group ?? options.group }));
+  const seen = new Set<string>();
+  const items: SpotlightItem[] = [];
+  for (const input of options.items) {
+    const item: SpotlightItem = { ...input, group: input.group ?? options.group };
+    // Ids must be unique per group; a later duplicate is dropped (as normalizeResult does).
+    const key = `${item.group}::${item.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    items.push(item);
+  }
   return {
     id: options.id ?? `static:${options.group}`,
     group: options.group,

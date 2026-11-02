@@ -25,4 +25,17 @@ describe('staticSource', () => {
     expect(source).toMatchObject({ id: 'static:Commands', group: 'Commands', local: true, prefix: '>', priority: 3 });
     expect(staticSource({ id: 'cmds', group: 'Commands', items: [] }).id).toBe('cmds');
   });
+
+  it('drops a later item that repeats a group::id', () => {
+    const source = staticSource({
+      group: 'Commands',
+      items: [
+        { id: 'a', title: 'First', action: { run: () => undefined } },
+        { id: 'a', title: 'Second', action: { run: () => undefined } },
+        { id: 'a', title: 'Other group', group: 'Links', action: { url: 'https://example.com' } },
+      ],
+    });
+    const items = source.search('', ctx) as SpotlightItem[];
+    expect(items.map((i) => `${i.group}:${i.title}`)).toEqual(['Commands:First', 'Links:Other group']);
+  });
 });

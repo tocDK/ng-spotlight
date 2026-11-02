@@ -20,6 +20,11 @@ export interface WalkedRoute {
   hasParam: boolean;
   /** Renders a component and has no children of its own. */
   isPage: boolean;
+  /**
+   * Navigating to the URL lands on something: the route renders a component, or one of its
+   * children matches the empty path (a page or a redirect). Unloaded lazy children count.
+   */
+  routable: boolean;
 }
 
 /** Angular keeps lazily loaded children here (internal API; pinned by route-source.spec.ts). */
@@ -50,6 +55,8 @@ export function walkRoutes(
           : typeof breadcrumb === 'string'
             ? breadcrumb
             : null;
+    const children = route.children ?? (includeLazy ? (route as RouteWithLoadedChildren)._loadedRoutes : undefined);
+    const rendersComponent = route.component !== undefined || route.loadComponent !== undefined;
     out.push({
       route,
       url: '/' + segments.join('/'),
@@ -60,12 +67,11 @@ export function walkRoutes(
       suggested: routeData.suggested === true,
       optedOut: spotlight === false,
       hasParam,
-      isPage:
-        (route.component !== undefined || route.loadComponent !== undefined) &&
-        route.children === undefined &&
-        route.loadChildren === undefined,
+      isPage: rendersComponent && route.children === undefined && route.loadChildren === undefined,
+      routable:
+        rendersComponent ||
+        (children ? children.some((child) => (child.path ?? '') === '') : route.loadChildren !== undefined),
     });
-    const children = route.children ?? (includeLazy ? (route as RouteWithLoadedChildren)._loadedRoutes : undefined);
     if (children) out.push(...walkRoutes(children, includeLazy, segments, hasParam));
   }
   return out;

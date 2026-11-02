@@ -18,7 +18,9 @@ function defaultRequest(query: string, ctx: SpotlightContext): SpotlightHttpRequ
  * provideSpotlight({ http }), which wins over the defaults.
  */
 export function httpSource(options: HttpSourceOptions): SpotlightSource {
-  const { url, request, map, ...rest } = options;
+  const { url, request, map, ...given } = options;
+  // An explicit `undefined` (e.g. `minLength: config.minLength`) must not override a default.
+  const rest = Object.fromEntries(Object.entries(given).filter(([, value]) => value !== undefined)) as typeof given;
   const defaultMap = (response: unknown): SpotlightResult => {
     if (Array.isArray(response) || isSpotlightResponse(response)) return response as SpotlightResult;
     throw new Error(`[ng-spotlight] httpSource ${url}: response is neither SpotlightResponse nor SpotlightItem[]`);
