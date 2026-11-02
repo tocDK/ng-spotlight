@@ -1,0 +1,50 @@
+name: release
+
+# Runs only when the operator pushes a version tag (see CONTRIBUTING.md "Releasing").
+on:
+  push:
+    tags: ['v*']
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Give this environment a required reviewer in the repo settings: the publish then waits for approval.
+    environment: npm
+    permissions:
+      contents: write # gh release create
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
+      - name: Use HTTPS for GitHub git dependencies
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+      - run: npm ci
+      - name: The tag must match the library version
+        run: |
+          expected="v$(node -p "require('./projects/ng-spotlight/package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match $expected"
+            exit 1
+          fi
+      - run: npm run test:coverage
+      - run: npm run build:lib
+      - run: npm run check:size
+      - name: Publish to npm with provenance
+        run: npm publish ./dist/ng-spotlight --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create the GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}

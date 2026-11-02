@@ -7,6 +7,8 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [21.0.0] - 2026-11-02
+
 ### Added
 - Headless core: `provideSpotlight`, `<spotlight-host>`, `SpotlightService`, the `spotlightTrigger`, `spotlightItem`,
   `spotlightEmpty` and `spotlightFooter` directives, hotkeys (`ctrl.space`, `mod.k`), keyboard navigation, chips,
@@ -18,4 +20,5 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 - `@tocdk/ng-spotlight/primeng`: `provideSpotlightPrimeNG()` renderer adapter.
 - Kitchen sink on GitHub Pages: <https://tocdk.github.io/ng-spotlight/>.
 
-[Unreleased]: https://github.com/tocDK/ng-spotlight/commits/main
+[Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.0.0...HEAD
+[21.0.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.0
