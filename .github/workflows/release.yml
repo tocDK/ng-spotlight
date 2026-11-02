@@ -52,24 +52,30 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    # Give this environment a required reviewer in the repo settings: the publish then waits for approval.
+    # npm trusted publishing (OIDC): no npm token or secret. The environment `npm` has a required
+    # reviewer and only allows v* tags; it must match the trusted publisher configured on npmjs.com.
     environment: npm
     permissions:
       contents: write # gh release create
-      id-token: write # npm provenance
+      id-token: write # npm trusted publishing (OIDC) and provenance
     steps:
+      # Node 24 bundles npm 11, which trusted publishing needs (npm >= 11.5.1). No `npm i -g npm`:
+      # that would fetch an unpinned CLI from the registry into the job that holds id-token.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+      - name: Trusted publishing needs npm 11.5.1 or later
+        run: |
+          v="$(npm --version)"
+          node -e "const [a,b,c]=process.argv[1].split('.').map(Number); process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)" "$v" \
+            || { echo "::error::npm $v is too old for trusted publishing (need >= 11.5.1)"; exit 1; }
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: package
           path: package
       - name: Publish to npm with provenance
         run: npm publish ./package/*.tgz --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create the GitHub release
         run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
         env:

@@ -44,12 +44,20 @@ permissions per job only, and pass values into `run:` through `env:`. `npm run c
 
 Publishing happens only when the operator pushes a version tag.
 
-One-time setup, before the first tag:
-1. npm auth: create an automation token for the `@tocdk` scope and save it as the repository secret `NPM_TOKEN`
-   (or configure npm trusted publishing for this repository and workflow `release.yml`, then delete the secret).
-2. GitHub: create the environment `npm` (Settings → Environments) with yourself as required reviewer, so every
-   publish waits for approval.
-3. GitHub Pages: Settings → Pages → Source: GitHub Actions.
+One-time setup (done 2026-11-02 unless marked):
+1. npm auth is **trusted publishing (OIDC)**: `release.yml` has no npm token or secret.
+   - npm only lets you add a trusted publisher to a package that already exists on the registry (it has no
+     "pending publisher"). So the **first** publish of `@tocdk/ng-spotlight` is done once by hand (still to do):
+     build and pack locally (`npm ci && npm run build:lib && cd dist/ng-spotlight && npm pack`), then
+     `npm login` and `npm publish ./tocdk-ng-spotlight-21.0.0.tgz --access public` (or use a one-off granular
+     token and revoke it afterwards).
+   - Then on npmjs.com → the package → Settings → Trusted publishing → GitHub Actions: owner `tocDK`, repository
+     `ng-spotlight`, workflow `release.yml`, environment `npm`. Optionally set "Require two-factor authentication
+     and disallow tokens" under publishing access.
+   - From then on every release is tag → approve → publish, with no secret. The publish job runs on Node 24
+     (npm 11, which trusted publishing needs: npm >= 11.5.1) and provenance is generated automatically.
+2. GitHub environment `npm` with required reviewer `tocDK` and a deployment policy that allows only `v*` tags: done.
+3. GitHub Pages with source "GitHub Actions" (https://tocdk.github.io/ng-spotlight/): done.
 
 Each release:
 1. Bump `projects/ng-spotlight/package.json` and `projects/ng-spotlight/src/lib/version.ts`, move the
@@ -57,4 +65,4 @@ Each release:
 2. `git tag v<version> && git push origin v<version>`.
 3. Approve the `npm` environment in the release run. The `build` job (read-only) checks the tag against the package
    version, runs the tests, builds and packs the library; the `publish` job (environment `npm`) publishes that
-   tarball with provenance, without installing dependencies, and creates the GitHub release.
+   tarball through trusted publishing (with provenance), without installing dependencies, and creates the GitHub release.
