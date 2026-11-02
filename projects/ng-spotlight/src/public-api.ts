@@ -24,3 +24,11 @@ export type {
 } from './lib/types';
 export { localStorageRecent } from './lib/recent';
 export { DEFAULT_SPOTLIGHT_TEXTS } from './lib/texts';
+export { staticSource, type StaticSourceOptions } from './lib/sources/static-source';
+export { routeSource, type RouteSourceOptions } from './lib/sources/route-source';
+export type { SpotlightRouteData } from './lib/sources/route-walk';
+export {
+  spotlightRouteAudit,
+  type SpotlightRouteAuditEntry,
+  type SpotlightRouteAuditOptions,
+} from './lib/sources/route-audit';
