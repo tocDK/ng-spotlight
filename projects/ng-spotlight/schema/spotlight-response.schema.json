@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tocdk.github.io/ng-spotlight/schema/spotlight-response.schema.json",
+  "title": "SpotlightResult",
+  "description": "Response format for @tocdk/ng-spotlight httpSource: a grouped SpotlightResponse or a flat SpotlightItem array (grouped by item.group).",
+  "oneOf": [
+    { "$ref": "#/$defs/SpotlightResponse" },
+    { "type": "array", "items": { "$ref": "#/$defs/SpotlightItem" } }
+  ],
+  "$defs": {
+    "SpotlightResponse": {
+      "type": "object",
+      "required": ["groups"],
+      "properties": {
+        "groups": { "type": "array", "items": { "$ref": "#/$defs/SpotlightGroup" } }
+      }
+    },
+    "SpotlightGroup": {
+      "type": "object",
+      "required": ["id", "label", "items"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" },
+        "total": { "type": "integer", "minimum": 0 },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/SpotlightItem" } }
+      }
+    },
+    "SpotlightItem": {
+      "type": "object",
+      "required": ["id", "title", "action"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "icon": { "type": "string" },
+        "group": {
+          "type": "string",
+          "description": "Optional inside a group (the group id wins); in a flat array it defaults to the source's group."
+        },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "badges": { "type": "array", "items": { "$ref": "#/$defs/SpotlightBadge" } },
+        "suggested": { "type": "boolean" },
+        "data": {},
+        "action": { "$ref": "#/$defs/SpotlightAction" },
+        "children": false
+      }
+    },
+    "SpotlightBadge": {
+      "type": "object",
+      "required": ["label"],
+      "properties": {
+        "label": { "type": "string" },
+        "tone": { "enum": ["info", "success", "warn", "danger"] }
+      },
+      "additionalProperties": false
+    },
+    "SpotlightAction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["route"],
+          "properties": { "route": { "oneOf": [{ "type": "string" }, { "type": "array" }] } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["url"],
+          "properties": { "url": { "type": "string" }, "newTab": { "type": "boolean" } },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

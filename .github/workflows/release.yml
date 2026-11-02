@@ -1,0 +1,82 @@
+name: release
+
+# Runs only when the operator pushes a version tag (see CONTRIBUTING.md "Releasing").
+# Two jobs: `build` installs dependencies and packs the library with read-only access;
+# `publish` holds the npm environment and the write/OIDC permissions, and never runs
+# npm ci or any dependency code: it only publishes the packed tarball.
+on:
+  push:
+    tags: ['v*']
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: The tag must match the library version
+        run: |
+          expected="v$(node -p "require('./projects/ng-spotlight/package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match $expected"
+            exit 1
+          fi
+      - name: Use HTTPS for GitHub git dependencies
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+      - run: npm ci
+      - run: npm run test:coverage
+      - run: npm run build:lib
+      - run: npm run check:size
+      - name: Pack the library
+        working-directory: dist/ng-spotlight
+        run: npm pack
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: dist/ng-spotlight/*.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # npm trusted publishing (OIDC): no npm token or secret. The environment `npm` has a required
+    # reviewer and only allows v* tags; it must match the trusted publisher configured on npmjs.com.
+    environment: npm
+    permissions:
+      contents: write # gh release create
+      id-token: write # npm trusted publishing (OIDC) and provenance
+    steps:
+      # Node 24 bundles npm 11, which trusted publishing needs (npm >= 11.5.1). No `npm i -g npm`:
+      # that would fetch an unpinned CLI from the registry into the job that holds id-token.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Trusted publishing needs npm 11.5.1 or later
+        run: |
+          v="$(npm --version)"
+          node -e "const [a,b,c]=process.argv[1].split('.').map(Number); process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)" "$v" \
+            || { echo "::error::npm $v is too old for trusted publishing (need >= 11.5.1)"; exit 1; }
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: package
+          path: package
+      - name: Publish to npm with provenance
+        run: npm publish ./package/*.tgz --provenance --access public
+      - name: Create the GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}

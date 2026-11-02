@@ -1,0 +1,36 @@
+{
+  "name": "@tocdk/ng-spotlight",
+  "version": "21.0.0",
+  "description": "Keyboard-first spotlight / command palette for Angular: headless core plus a PrimeNG adapter.",
+  "license": "MIT",
+  "author": "Thomas Christensen (tocDK)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tocDK/ng-spotlight.git"
+  },
+  "homepage": "https://tocdk.github.io/ng-spotlight/",
+  "bugs": "https://github.com/tocDK/ng-spotlight/issues",
+  "keywords": ["angular", "command-palette", "spotlight", "quick-search", "cmdk", "primeng", "a11y"],
+  "peerDependencies": {
+    "@angular/cdk": "^21.0.0",
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "primeng": "^21.0.0",
+    "rxjs": "^7.8.0"
+  },
+  "peerDependenciesMeta": {
+    "primeng": { "optional": true }
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false,
+  "exports": {
+    "./schema/spotlight-response.schema.json": "./schema/spotlight-response.schema.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
