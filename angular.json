@@ -36,7 +36,9 @@
             "polyfills": [],
             "allowedCommonJsDependencies": ["prismjs", "moo"],
             "tsConfig": "projects/kitchen-sink/tsconfig.app.json",
-            "assets": [],
+            "assets": [
+              { "glob": "spotlight-response.schema.json", "input": "projects/ng-spotlight/schema", "output": "schema" }
+            ],
             "styles": ["node_modules/primeicons/primeicons.css", "projects/kitchen-sink/src/styles.css"]
           },
           "configurations": {
