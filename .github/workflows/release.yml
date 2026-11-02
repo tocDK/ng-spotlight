@@ -27,9 +27,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           registry-url: https://registry.npmjs.org
-      - name: Use HTTPS for GitHub git dependencies
-        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-      - run: npm ci
       - name: The tag must match the library version
         run: |
           expected="v$(node -p "require('./projects/ng-spotlight/package.json').version")"
@@ -37,6 +34,9 @@ jobs:
             echo "::error::tag $GITHUB_REF_NAME does not match $expected"
             exit 1
           fi
+      - name: Use HTTPS for GitHub git dependencies
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+      - run: npm ci
       - run: npm run test:coverage
       - run: npm run build:lib
       - run: npm run check:size

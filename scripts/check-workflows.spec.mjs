@@ -52,4 +52,36 @@ describe('checkWorkflow', () => {
     const block = good.replace('        run: echo "$REF"', `        run: |\n          echo start\n          echo "${EXPR}"`);
     expect(checkWorkflow(block, 'w.yml')).toEqual(['w.yml:16: "${{ }}" expansion inside run:; pass it through env: instead']);
   });
+
+  it('requires the top-level permissions to be {} and rejects write-all/read-all', () => {
+    const open = good.replace('permissions: {}', 'permissions:\n  contents: read');
+    expect(checkWorkflow(open, 'w.yml')).toEqual(['w.yml: top-level "permissions:" must be {}']);
+    const writeAll = good.replace('    permissions:\n      contents: read', '    permissions: write-all');
+    expect(checkWorkflow(writeAll, 'w.yml')).toEqual(['w.yml:7: "permissions: write-all" is not least-privilege']);
+    const readAll = good.replace('permissions: {}', 'permissions: read-all');
+    expect(checkWorkflow(readAll, 'w.yml')).toEqual([
+      'w.yml: top-level "permissions:" must be {}',
+      'w.yml:3: "permissions: read-all" is not least-privilege',
+    ]);
+  });
+
+  it('detects a job header that carries a trailing comment', () => {
+    const commented = good.replace('  build:', '  build: # main job').replace('    permissions:\n      contents: read\n', '');
+    expect(checkWorkflow(commented, 'w.yml')).toEqual(['w.yml:5: job "build" has no "permissions:"']);
+  });
+
+  it('fails when no job is detected (wrong indentation)', () => {
+    const indented = good
+      .split('\n')
+      .map((l, i) => (i >= 4 ? `  ${l}` : l))
+      .join('\n');
+    expect(checkWorkflow(indented, 'w.yml')).toContain('w.yml: no jobs detected under "jobs:" (jobs must be indented 2 spaces)');
+  });
+
+  it('rejects a bare or non-version comment after a pinned SHA', () => {
+    const bare = good.replace('# v7.0.1', '#');
+    expect(checkWorkflow(bare, 'w.yml')).toEqual(['w.yml:10: add a "# vX.Y.Z" comment after the pinned SHA']);
+    const nonVersion = good.replace('# v7.0.1', '# latest');
+    expect(checkWorkflow(nonVersion, 'w.yml')).toEqual(['w.yml:10: add a "# vX.Y.Z" comment after the pinned SHA']);
+  });
 });
