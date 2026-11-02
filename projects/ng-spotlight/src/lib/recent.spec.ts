@@ -98,3 +98,31 @@ describe('recent helpers', () => {
     expect(isRecentEntry({ id: 'a', title: 'a', group: 'g' })).toBe(false);
   });
 });
+
+describe('isRecentEntry rejects malformed or unsafe stored data', () => {
+  it.each([
+    ['subtitle that is not a string', { ...entry('a'), subtitle: 5 }, false],
+    ['icon that is not a string', { ...entry('a'), icon: ['x'] }, false],
+    ['badges that are not an array', { ...entry('a'), badges: { label: 'x' } }, false],
+    ['a badge without a string label', { ...entry('a'), badges: [{ tone: 'info' }] }, false],
+    ['a badge with an unknown tone', { ...entry('a'), badges: [{ label: 'x', tone: 'loud' }] }, false],
+    ['a badge with a known tone', { ...entry('a'), badges: [{ label: 'x', tone: 'warn' }] }, true],
+    ['a badge without a tone', { ...entry('a'), badges: [{ label: 'x' }] }, true],
+    ['a route array with an object segment', { ...entry('a'), action: { route: ['a', {}] } }, false],
+    ['a route array with string and number segments', { ...entry('a'), action: { route: ['a', 2] } }, true],
+    ['a url action with a javascript: scheme', { ...entry('a'), action: { url: 'javascript:alert(1)' } }, false],
+    ['a url action with https', { ...entry('a'), action: { url: 'https://x.dk' } }, true],
+    ['an action with both route and url', { ...entry('a'), action: { route: '/a', url: 'https://x.dk' } }, false],
+  ])('%s -> %s', (_name, value, expected) => {
+    expect(isRecentEntry(value)).toBe(expected);
+  });
+
+  it('drops malformed entries from load()', async () => {
+    localStorage.setItem(
+      'ng-spotlight:recent:app',
+      JSON.stringify([entry('ok'), { ...entry('bad'), action: { url: 'javascript:alert(1)' } }]),
+    );
+    expect(await localStorageRecent('app').load()).toEqual([entry('ok')]);
+  });
+});
+

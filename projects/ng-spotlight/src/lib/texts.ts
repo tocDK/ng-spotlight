@@ -1,6 +1,6 @@
 import { Injector, isSignal, signal, type Signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { isObservable } from 'rxjs';
+import { catchError, isObservable, of } from 'rxjs';
 import type { SpotlightTexts, SpotlightTextValue } from './types';
 
 export type SpotlightTextKey = Exclude<keyof SpotlightTexts, 'resultsAnnouncement'>;
@@ -41,7 +41,10 @@ export type ResolvedSpotlightTexts = { readonly [K in SpotlightTextKey]: Signal<
 function toTextSignal(value: SpotlightTextValue | undefined, fallback: string, injector: Injector): Signal<string> {
   if (value === undefined) return signal(fallback).asReadonly();
   if (isSignal(value)) return value;
-  if (isObservable(value)) return toSignal(value, { initialValue: fallback, injector });
+  // An erroring source keeps the fallback; without this, toSignal rethrows on every read.
+  if (isObservable(value)) {
+    return toSignal(value.pipe(catchError(() => of(fallback))), { initialValue: fallback, injector });
+  }
   return signal(value).asReadonly();
 }
 

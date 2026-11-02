@@ -1,6 +1,6 @@
 import { EnvironmentInjector, provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { DEFAULT_SPOTLIGHT_TEXTS, resolveTexts, SPOTLIGHT_TEXT_KEYS } from './texts';
 
 describe('resolveTexts', () => {
@@ -40,5 +40,12 @@ describe('resolveTexts', () => {
 
   it('uses a custom results announcement', () => {
     expect(resolveTexts({ resultsAnnouncement: (n) => `${n} hits` }, injector).resultsAnnouncement(3)).toBe('3 hits');
+  });
+
+  it('keeps the fallback when an observable errors, and does not throw on read', () => {
+    const failing = new Observable<string>((subscriber) => subscriber.error(new Error('boom')));
+    const texts = resolveTexts({ recent: failing }, injector);
+    expect(() => texts.recent()).not.toThrow();
+    expect(texts.recent()).toBe(DEFAULT_SPOTLIGHT_TEXTS.recent);
   });
 });

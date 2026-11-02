@@ -42,6 +42,8 @@ export function parseHotkey(spec: string, isMac: boolean): ParsedHotkey {
 
 export function matchesHotkey(event: KeyboardEvent, hotkey: ParsedHotkey): boolean {
   if (event.isComposing) return false;
+  // Autofill and synthetic keydown events can arrive without a key string.
+  if (typeof event.key !== 'string') return false;
   if (
     event.ctrlKey !== hotkey.ctrl ||
     event.altKey !== hotkey.alt ||

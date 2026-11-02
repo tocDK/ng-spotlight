@@ -1,21 +1,46 @@
-import type { SpotlightItem, SpotlightRecentEntry, SpotlightRecentStorage, SpotlightStoredAction } from './types';
+import { isSafeUrl } from './url';
+import type { SpotlightBadge, SpotlightItem, SpotlightRecentEntry, SpotlightRecentStorage, SpotlightStoredAction } from './types';
 
+const BADGE_TONES = new Set(['info', 'success', 'warn', 'danger']);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isRouteSegments(value: unknown): boolean {
+  return Array.isArray(value) && value.every((segment) => typeof segment === 'string' || typeof segment === 'number');
+}
+
+function isBadge(value: unknown): value is SpotlightBadge {
+  if (!isRecord(value) || typeof value['label'] !== 'string') return false;
+  const tone = value['tone'];
+  return tone === undefined || (typeof tone === 'string' && BADGE_TONES.has(tone));
+}
+
+/** Exactly one of route/url, each valid: unsafe URLs are dropped rather than replayed. */
 function isStoredAction(value: unknown): value is SpotlightStoredAction {
-  if (typeof value !== 'object' || value === null) return false;
-  const action = value as Record<string, unknown>;
-  return typeof action['route'] === 'string' || Array.isArray(action['route']) || typeof action['url'] === 'string';
+  if (!isRecord(value)) return false;
+  const hasRoute = 'route' in value;
+  const hasUrl = 'url' in value;
+  if (hasRoute === hasUrl) return false;
+  if (hasRoute) return typeof value['route'] === 'string' || isRouteSegments(value['route']);
+  return typeof value['url'] === 'string' && isSafeUrl(value['url']);
 }
 
 export function isRecentEntry(value: unknown): value is SpotlightRecentEntry {
-  if (typeof value !== 'object' || value === null) return false;
-  const entry = value as Record<string, unknown>;
-  return (
-    typeof entry['id'] === 'string' &&
-    typeof entry['title'] === 'string' &&
-    typeof entry['group'] === 'string' &&
-    typeof entry['sourceId'] === 'string' &&
-    (entry['action'] === undefined || isStoredAction(entry['action']))
-  );
+  if (!isRecord(value)) return false;
+  if (
+    typeof value['id'] !== 'string' ||
+    typeof value['title'] !== 'string' ||
+    typeof value['group'] !== 'string' ||
+    typeof value['sourceId'] !== 'string'
+  ) {
+    return false;
+  }
+  if (value['subtitle'] !== undefined && typeof value['subtitle'] !== 'string') return false;
+  if (value['icon'] !== undefined && typeof value['icon'] !== 'string') return false;
+  if (value['badges'] !== undefined && !(Array.isArray(value['badges']) && value['badges'].every(isBadge))) return false;
+  return value['action'] === undefined || isStoredAction(value['action']);
 }
 
 /**

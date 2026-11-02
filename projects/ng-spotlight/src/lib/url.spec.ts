@@ -17,6 +17,9 @@ describe('isSafeUrl', () => {
     '\u0001javascript:alert(1)',
     'data:text/html,<script>alert(1)</script>',
     'vbscript:msgbox(1)',
+    'java\rscript:alert(1)',
+    'java\u007fscript:alert(1)',
+    'foo:bar',
   ])('blocks %j', (url) => {
     expect(isSafeUrl(url)).toBe(false);
   });

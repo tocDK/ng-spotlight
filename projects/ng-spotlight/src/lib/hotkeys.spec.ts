@@ -49,4 +49,10 @@ describe('matchesHotkey', () => {
   it('matches letters case-insensitively', () => {
     expect(matchesHotkey(down({ key: 'K', code: 'KeyK', ctrlKey: true }), parseHotkey('mod.k', false))).toBe(true);
   });
+
+  it('returns false for events without a key string (autofill, synthetic events)', () => {
+    const event = down({ code: 'Space', ctrlKey: true });
+    Object.defineProperty(event, 'key', { value: undefined });
+    expect(matchesHotkey(event, parseHotkey('ctrl.space', false))).toBe(false);
+  });
 });
