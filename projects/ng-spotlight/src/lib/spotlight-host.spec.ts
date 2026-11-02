@@ -269,6 +269,7 @@ describe('SpotlightHost', () => {
     typeInto('zzz');
     await stable();
     expect(q('.sp-empty')!.textContent.trim()).toBe('No results');
+    await expectNoAxeViolations();
     expect(q('[role="status"]')!.textContent.trim()).toBe('No results');
   });
 
@@ -403,7 +404,7 @@ describe('SpotlightHost', () => {
     expect(qa('.sp-pane')).toHaveLength(0);
   });
 
-  it('has no axe violations in the no-results, error and loading states', async () => {
+  it('has no axe violations in the error state', async () => {
     const flaky: SpotlightSource = {
       id: 'flaky',
       group: 'Flaky',
@@ -412,9 +413,6 @@ describe('SpotlightHost', () => {
     const { svc, stable } = await setup({ sources: [pages, flaky], onError: () => undefined });
     svc.open();
     await stable();
-    typeInto('zzz');
-    await stable();
-    expect(q('.sp-empty')).toBeNull();
     typeInto('x');
     await stable();
     await expectNoAxeViolations();
