@@ -6,30 +6,12 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { extractExports, mentions } from './check-docs-lib.mjs';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const entryPoints = ['projects/ng-spotlight/src/public-api.ts', 'projects/ng-spotlight/primeng/src/public-api.ts'];
 const contentDir = join(root, 'projects/kitchen-sink/src/app/content');
-
-function extractExports(source) {
-  const names = new Set();
-  const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
-  const braceRe = /export\s+(?:type\s+)?\{([^}]+)\}/g;
-  let match;
-  while ((match = braceRe.exec(stripped)) !== null) {
-    for (const raw of match[1].split(',')) {
-      let name = raw.trim();
-      if (!name) continue;
-      if (name.startsWith('type ')) name = name.slice(5).trim();
-      const asIndex = name.indexOf(' as ');
-      if (asIndex > 0) name = name.slice(asIndex + 4).trim();
-      if (name) names.add(name);
-    }
-  }
-  const declRe = /export\s+(?:declare\s+)?(?:abstract\s+)?(?:class|function|const|let|var|interface|type|enum)\s+([A-Za-z_$][\w$]*)/g;
-  while ((match = declRe.exec(stripped)) !== null) names.add(match[1]);
-  return [...names];
-}
 
 if (!existsSync(contentDir)) {
   console.error(`[check-docs] FAIL: ${contentDir} does not exist`);
@@ -51,9 +33,16 @@ for (const entry of entryPoints) {
     console.error(`[check-docs] FAIL: ${entry} not found`);
     process.exit(1);
   }
-  for (const name of extractExports(readFileSync(path, 'utf8'))) {
+  let names;
+  try {
+    names = extractExports(readFileSync(path, 'utf8'));
+  } catch (err) {
+    console.error(`[check-docs] FAIL: ${entry}: ${err.message}`);
+    process.exit(1);
+  }
+  for (const name of names) {
     checked++;
-    if (contents.some((c) => c.includes(name))) {
+    if (contents.some((c) => mentions(c, name))) {
       console.log(`  PASS  ${name}`);
     } else {
       console.log(`  FAIL  ${name} (${entry}) is not mentioned in any content/*.content.ts`);

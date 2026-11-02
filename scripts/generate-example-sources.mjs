@@ -6,8 +6,9 @@
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const examplesDir = join(root, 'projects/kitchen-sink/src/app/examples');
 const outputPath = join(examplesDir, 'sources.generated.ts');
 

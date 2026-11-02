@@ -38,6 +38,9 @@ export default defineConfig({
         },
       },
       {
+        test: { name: 'scripts', environment: 'node', include: ['scripts/**/*.spec.mjs'] },
+      },
+      {
         extends: true,
         test: {
           name: 'demo',
