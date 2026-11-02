@@ -111,6 +111,7 @@ describe('isRecentEntry rejects malformed or unsafe stored data', () => {
     ['a route array with an object segment', { ...entry('a'), action: { route: ['a', {}] } }, false],
     ['a route array with string and number segments', { ...entry('a'), action: { route: ['a', 2] } }, true],
     ['a url action with a javascript: scheme', { ...entry('a'), action: { url: 'javascript:alert(1)' } }, false],
+    ['a url action with a protocol-relative url', { ...entry('a'), action: { url: '//evil.com' } }, false],
     ['a url action with https', { ...entry('a'), action: { url: 'https://x.dk' } }, true],
     ['an action with both route and url', { ...entry('a'), action: { route: '/a', url: 'https://x.dk' } }, false],
   ])('%s -> %s', (_name, value, expected) => {
