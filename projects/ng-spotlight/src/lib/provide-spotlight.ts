@@ -14,8 +14,11 @@ const SPOTLIGHT_LOCAL_CONFIG = new InjectionToken<SpotlightConfig>('SPOTLIGHT_LO
 
 /**
  * Sets up a palette. Call it once in the app config; call it again in a child injector (for
- * example a lazy route's `providers`) to add sources there. Pass a factory to build the config
- * in an injection context, e.g. `provideSpotlight(() => ({ texts: { placeholder: inject(I18n).t$('Search…') } }))`.
+ * example a lazy route's `providers`) to add sources there. A child call only contributes
+ * `sources` and `http` defaults: its `texts`, `hotkeys`, `recent`, `theme` and `onError` are
+ * ignored (dev mode warns), since the first call owns the palette. Pass `isolated: true` for a
+ * separate palette with its own settings. Pass a factory to build the config in an injection
+ * context, e.g. `provideSpotlight(() => ({ texts: { placeholder: inject(I18n).t$('Search…') } }))`.
  */
 export function provideSpotlight(config: SpotlightConfig | (() => SpotlightConfig) = {}): EnvironmentProviders {
   return makeEnvironmentProviders([

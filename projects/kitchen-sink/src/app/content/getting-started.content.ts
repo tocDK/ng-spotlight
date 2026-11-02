@@ -42,7 +42,9 @@ palette in the top bar is configured exactly like this, plus a few links.
 chosen \`SpotlightItem\`). \`SpotlightTrigger\` (\`spotlightTrigger\`, optionally \`spotlightTrigger="#"\`) opens it on click.
 
 Call \`provideSpotlight()\` again in a lazy route's \`providers\` to add sources there; they disappear when that
-injector is destroyed. Use \`provideSpotlight(() => ({ … }))\` when the config needs \`inject()\`.
+injector is destroyed. A child call only adds \`sources\` (and \`http\` defaults for them): its \`texts\`, \`hotkeys\`,
+\`recent\`, \`theme\` and \`onError\` are ignored, with a dev-mode warning, because the first call owns them. Pass
+\`isolated: true\` to create a separate palette instead. Use \`provideSpotlight(() => ({ … }))\` when the config needs \`inject()\`.
       `,
     },
   ],

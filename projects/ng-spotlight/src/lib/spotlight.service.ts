@@ -54,6 +54,9 @@ export interface SpotlightSettings {
 
 let nextInstanceId = 0;
 
+/** Settings only the first (root or isolated) provideSpotlight() call may set. */
+const IGNORED_IN_CHILD = ['hotkeys', 'texts', 'recent', 'theme', 'onError'] as const;
+
 const defaultOnError = (error: unknown, source: SpotlightSource): void => {
   console.error(`[ng-spotlight] source "${source.id}" failed`, error);
 };
@@ -234,6 +237,14 @@ export class SpotlightService {
         onError: config.onError ?? defaultOnError,
       };
       this._texts.set(resolveTexts(config.texts, injector));
+    } else if (typeof ngDevMode === 'undefined' || ngDevMode) {
+      const ignored = IGNORED_IN_CHILD.filter((key) => config[key] !== undefined);
+      if (ignored.length > 0) {
+        console.warn(
+          `[ng-spotlight] a child provideSpotlight() only adds sources and http defaults; ${ignored.join(', ')} ` +
+            'ignored. Set them in the first provideSpotlight() call, or pass isolated: true for a separate palette.',
+        );
+      }
     }
     const added: SpotlightRegisteredSource[] = (config.sources ?? []).map((source) => ({
       source,

@@ -127,6 +127,11 @@ export interface SpotlightRecentStorage {
   save(items: SpotlightRecentEntry[]): Promise<void>;
 }
 
+/**
+ * Configuration of one provideSpotlight() call. `hotkeys`, `texts`, `recent`, `theme` and `onError`
+ * belong to the palette and are read only from the first call (the root or an `isolated` one); a
+ * non-isolated child call only adds its `sources` and `http` defaults.
+ */
 export interface SpotlightConfig {
   /** Default ['ctrl.space', 'mod.k']. 'mod' = Cmd on macOS, Ctrl elsewhere. */
   hotkeys?: string[];

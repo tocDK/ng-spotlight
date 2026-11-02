@@ -107,7 +107,9 @@ provideSpotlight({
 
 Each item has an `action`: `{ route }` (Router), `{ url, newTab? }` (only http, https, mailto, tel and relative URLs
 are allowed) or `{ run }`. A query that starts with a source's `prefix` (for example `#` or `@`) searches only that source.
-Call `provideSpotlight()` again in a lazy route's `providers` to add sources for that area.
+Call `provideSpotlight()` again in a lazy route's `providers` to add sources for that area. Such a child call only
+adds `sources` (and `http` defaults for them); its `texts`, `hotkeys`, `recent`, `theme` and `onError` are ignored
+(with a dev-mode warning) because the first call owns them. Pass `isolated: true` for a separate palette instead.
 
 ## CI check for unlabelled routes
 

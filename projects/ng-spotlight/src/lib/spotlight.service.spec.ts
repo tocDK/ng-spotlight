@@ -292,6 +292,19 @@ describe('SpotlightService', () => {
     expect(titles(svc)).not.toContain('Users');
   });
 
+  it('ignores palette settings in a non-isolated child and warns about them in dev mode', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { svc } = setup();
+    const env = TestBed.inject(EnvironmentInjector);
+    createEnvironmentInjector([provideSpotlight({ sources: [], http: {} })], env);
+    expect(warn).not.toHaveBeenCalled();
+    createEnvironmentInjector([provideSpotlight({ texts: { placeholder: 'Child' }, hotkeys: ['alt.k'], theme: 'none' })], env);
+    expect(svc.texts.placeholder()).toBe('Search…');
+    expect(svc.settings.theme).toBe('default');
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain('hotkeys, texts, theme ignored');
+  });
+
   it('forgets resolved run() items of a destroyed child source', async () => {
     const storage = memoryRecent([{ id: 'ping', title: 'Ping', group: 'Admin', sourceId: 'admin-src' }]);
     const { svc } = setup({ recent: { storage } });
