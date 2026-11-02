@@ -20,6 +20,7 @@ import {
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
+import { SpotlightHotkeyArbiter, type SpotlightHotkeyClient } from './hotkey-arbiter';
 import { matchesHotkey } from './hotkeys';
 import { resolveParts } from './parts/default-parts';
 import { SpotlightDefaultTheme } from './parts/default-theme';
@@ -149,6 +150,12 @@ export class SpotlightHost {
   private readonly viewContainerRef = inject(ViewContainerRef);
   private readonly injector = inject(Injector);
   private readonly document = inject(DOCUMENT);
+  private readonly arbiter = inject(SpotlightHotkeyArbiter);
+  private readonly hotkeyClient: SpotlightHotkeyClient = {
+    hotkeys: () => this.svc.settings.hotkeys,
+    isOpen: () => this.svc.isOpen(),
+    openedAt: 0,
+  };
 
   protected readonly parts = resolveParts(inject(SPOTLIGHT_RENDERER, { optional: true }));
   protected readonly themeDefault = this.svc.settings.theme === 'default';
@@ -199,9 +206,17 @@ export class SpotlightHost {
   }));
 
   constructor() {
+    const unregister = this.arbiter.register(this.hotkeyClient);
     effect(() => {
       const open = this.svc.isOpen();
-      untracked(() => (open ? this.attach() : this.detach()));
+      untracked(() => {
+        if (open) {
+          this.arbiter.opened(this.hotkeyClient);
+          this.attach();
+        } else {
+          this.detach();
+        }
+      });
     });
     afterRenderEffect(() => {
       const id = this.activeId();
@@ -209,6 +224,7 @@ export class SpotlightHost {
       this.document.getElementById(id)?.scrollIntoView?.({ block: 'nearest' });
     });
     inject(DestroyRef).onDestroy(() => {
+      unregister();
       this.svc.close();
       this.detach();
     });
@@ -239,6 +255,8 @@ export class SpotlightHost {
     if (!this.svc.settings.hotkeys.some((hotkey) => matchesHotkey(event, hotkey))) return;
     event.preventDefault();
     if (event.repeat) return;
+    // With several palettes on the page, exactly one reacts (see SpotlightHotkeyArbiter).
+    if (this.arbiter.handler(event) !== this.hotkeyClient) return;
     this.svc.toggle();
   }
 
