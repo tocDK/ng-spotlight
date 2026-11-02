@@ -37,3 +37,19 @@ export type { SpotlightGroupState } from './lib/engine';
 
 export { provideSpotlight } from './lib/provide-spotlight';
 export { SpotlightService, type SpotlightChip, type SpotlightOption } from './lib/spotlight.service';
+export {
+  SPOTLIGHT_RENDERER,
+  type SpotlightBadgeContext,
+  type SpotlightChipContext,
+  type SpotlightGroupHeaderContext,
+  type SpotlightInputContext,
+  type SpotlightRenderer,
+  type SpotlightRowContext,
+} from './lib/renderer';
+export {
+  SpotlightDefaultBadge,
+  SpotlightDefaultChip,
+  SpotlightDefaultGroupHeader,
+  SpotlightDefaultInput,
+  SpotlightDefaultRow,
+} from './lib/parts/default-parts';
