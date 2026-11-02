@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, spotlightRouteAudit } from '@tocdk/ng-spotlight';
 import { LinguiService } from '@tocdk/lingui-angular';
 import { providePrimeNG } from 'primeng/config';
+import { expectNoAxeViolations } from '../../../ng-spotlight/src/lib/testing.spec-util';
 import { routes } from './app.routes';
 import { EXAMPLES } from './examples';
 import { byoLinguiProviders } from './examples/byo-lingui.example';
@@ -56,7 +57,7 @@ describe('kitchen sink', () => {
     expect(new Set(pageExamples)).toEqual(new Set(Object.keys(EXAMPLES)));
   });
 
-  it.each(Object.keys(EXAMPLES))('renders example "%s" with its own palette', async (key) => {
+  async function openExample(key: string) {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
@@ -76,7 +77,29 @@ describe('kitchen sink', () => {
     expect(svc).not.toBe(TestBed.inject(SpotlightService));
     svc.open();
     await fixture.whenStable();
+    return { fixture, svc };
+  }
+
+  it.each(Object.keys(EXAMPLES))('renders example "%s" with its own palette', async (key) => {
+    const { fixture, svc } = await openExample(key);
     expect(document.querySelector('[role="combobox"]')).not.toBeNull();
+    svc.close();
+    await fixture.whenStable();
+    fixture.destroy();
+  });
+
+  it('byo-renderer shows its dot badge through the custom row', async () => {
+    const { fixture, svc } = await openExample('byo-renderer');
+    expect(document.querySelector('app-compact-row')).not.toBeNull();
+    expect(document.querySelector('app-dot-badge')?.textContent?.trim()).toBe('● 12 new');
+    svc.close();
+    await fixture.whenStable();
+    fixture.destroy();
+  });
+
+  it('accessibility example has no axe violations when open', async () => {
+    const { fixture, svc } = await openExample('accessibility');
+    await expectNoAxeViolations();
     svc.close();
     await fixture.whenStable();
     fixture.destroy();

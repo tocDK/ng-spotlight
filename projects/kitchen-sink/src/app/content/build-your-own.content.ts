@@ -45,6 +45,6 @@ host owns behaviour, state and ARIA; an \`input\` part must copy the ARIA fields
     { key: 'byo-source', title: 'An async, cancellable custom source' },
     { key: 'byo-lingui', title: 'Texts from @tocdk/lingui-angular with live locale switching' },
     { key: 'byo-recent', title: 'Recent items in sessionStorage' },
-    { key: 'byo-renderer', title: 'A starter renderer adapter (row + badge parts)' },
+    { key: 'byo-renderer', title: 'A starter renderer adapter (a compact row that renders badges as dots)' },
   ],
 };

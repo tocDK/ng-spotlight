@@ -49,6 +49,11 @@ function searchResponse(query: string, chip: string | null): SpotlightResponse {
 
 let flakyCalls = 0;
 
+/** Test hook: restart the flaky service's fail/succeed alternation. */
+export function resetMockBackend(): void {
+  flakyCalls = 0;
+}
+
 /** An in-browser backend for the HTTP examples. Real apps call their own API instead. */
 export const mockBackendInterceptor: HttpInterceptorFn = (req, next) => {
   const query = (req.params.get('q') ?? req.params.get('term') ?? '').toLowerCase();

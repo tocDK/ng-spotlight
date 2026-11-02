@@ -1,3 +1,4 @@
+import { NgComponentOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import {
   localStorageRecent,
@@ -11,15 +12,22 @@ import {
 } from '@tocdk/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
-/** A row part: markup only. The host already provides role="option", ids and aria-selected. */
+/** A row part: markup only; it renders badges through the badge part it is given. The host already provides role="option", ids and aria-selected. */
 @Component({
   selector: 'app-compact-row',
+  imports: [NgComponentOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     :host { display: flex; flex: 1; justify-content: space-between; gap: 12px; }
     .group { color: var(--sp-muted); font-size: 12px; }
   `,
-  template: `<span>{{ ctx().item.title }}</span><span class="group">{{ ctx().item.group }}</span>`,
+  template: `
+    <span>{{ ctx().item.title }}</span>
+    <span class="group">{{ ctx().item.group }}</span>
+    @for (badge of ctx().item.badges ?? []; track $index) {
+      <ng-container *ngComponentOutlet="ctx().badge; inputs: { ctx: { badge: badge } }" />
+    }
+  `,
 })
 export class CompactRow {
   readonly ctx = input.required<SpotlightRowContext>();
