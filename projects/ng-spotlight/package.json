@@ -1,6 +1,6 @@
 {
   "name": "@tocdk-oss/ng-spotlight",
-  "version": "21.0.0",
+  "version": "21.0.1",
   "description": "Keyboard-first spotlight / command palette for Angular: headless core plus a PrimeNG adapter.",
   "license": "MIT",
   "author": "Thomas Christensen (tocDK)",

@@ -7,6 +7,14 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [21.0.1] - 2026-11-02
+
+First release published by GitHub Actions through npm trusted publishing, with provenance. No code changes from
+21.0.0 (which was published once by hand to create the package on npm).
+
+### Changed
+- Release pipeline: published from `release.yml` via OIDC trusted publishing, with signed provenance.
+
 ## [21.0.0] - 2026-11-02
 
 First release, published as `@tocdk-oss/ng-spotlight` (the `@tocdk` npm scope was not available, so the release
@@ -46,5 +54,6 @@ candidate's `@tocdk/ng-spotlight` name was never published).
   be stored as JSON is kept by id and resolved through its source.
 - The Recent ranking boost is keyed on source and item id, so a same-id item in another source is not boosted.
 
-[Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.0.0...HEAD
+[Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.0.1...HEAD
+[21.0.1]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.1
 [21.0.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.0
