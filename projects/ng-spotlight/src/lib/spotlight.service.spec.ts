@@ -209,6 +209,52 @@ describe('SpotlightService', () => {
     expect(ran).toEqual(['hello']);
   });
 
+  it('keeps a Recent route with matrix params across a reload', async () => {
+    const route = ['/customers', 42, { tab: 'orders' }];
+    const matrix = staticSource({ id: 'matrix', group: 'Customers', items: [{ id: 'c42', title: 'Customer 42', action: { route } }] });
+    const storage = memoryRecent();
+    const first = setup({ sources: [matrix], recent: { storage } });
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    first.svc.open();
+    first.svc.setQuery('cust');
+    await first.svc.select(opt(first.svc, 'Customer 42'));
+    expect(storage.saved.at(-1)?.[0].action).toEqual({ route });
+
+    TestBed.resetTestingModule();
+    const { svc } = setup({ sources: [matrix], recent: { storage } });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    svc.open();
+    await flush();
+    expect(svc.groups()[0].items.map((i) => i.title)).toEqual(['Customer 42']);
+    await svc.select(svc.options()[0]);
+    expect(navigate).toHaveBeenCalledWith(route);
+  });
+
+  it('stores a route that is not plain JSON by id and resolves it through its source, now and after a reload', async () => {
+    const route = ['/report', { from: new Date(0) }];
+    const report = staticSource({ id: 'report', group: 'Reports', items: [{ id: 'r1', title: 'Report', action: { route } }] });
+    const storage = memoryRecent();
+    const first = setup({ sources: [report], recent: { storage } });
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    first.svc.open();
+    first.svc.setQuery('rep');
+    await first.svc.select(opt(first.svc, 'Report'));
+    expect(storage.saved.at(-1)).toEqual([{ id: 'r1', title: 'Report', group: 'Reports', sourceId: 'report' }]);
+    first.svc.open();
+    await flush();
+    expect(first.svc.groups()[0].items.map((i) => i.title)).toEqual(['Report']);
+    first.svc.close();
+
+    TestBed.resetTestingModule();
+    const { svc } = setup({ sources: [report], recent: { storage } });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    svc.open();
+    await flush();
+    expect(svc.groups()[0].items.map((i) => i.title)).toEqual(['Report']);
+    await svc.select(svc.options()[0]);
+    expect(navigate).toHaveBeenCalledWith(route);
+  });
+
   it('survives a recent storage that rejects, throws or returns garbage', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const broken: SpotlightRecentStorage = {

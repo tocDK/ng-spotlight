@@ -72,6 +72,25 @@ describe('recent helpers', () => {
     });
   });
 
+  it('round-trips route arrays with matrix params and outlets through localStorage', async () => {
+    const route = ['/customers', 42, { tab: 'orders', page: 2, archived: false, q: null }, { outlets: { side: ['help'] } }];
+    const stored = toRecentEntry({ id: 'c42', title: 'Customer 42', group: 'Customers', action: { route } }, 'http');
+    expect(stored.action).toEqual({ route });
+    const storage = localStorageRecent('matrix');
+    await storage.save([stored]);
+    expect(await storage.load()).toEqual([stored]);
+    expect(entryToItem((await storage.load())[0])?.action).toEqual({ route });
+  });
+
+  it('stores a route that would not survive JSON by id only, like a run() item', () => {
+    const date = new Date(0);
+    for (const route of [['/x', { at: date }], ['/x', { cb: () => 1 }], ['/x', NaN], ['/x', { u: undefined }]] as unknown[][]) {
+      const stored = toRecentEntry({ id: 'x', title: 'X', group: 'g', action: { route } }, 's');
+      expect(stored).toEqual({ id: 'x', title: 'X', group: 'g', sourceId: 's' });
+      expect(isRecentEntry(stored)).toBe(true);
+    }
+  });
+
   it('stores run() items without an action', () => {
     const stored = toRecentEntry({ id: 'logout', title: 'Log out', group: 'Commands', action: { run } }, 'cmd');
     expect(stored).toEqual({ id: 'logout', title: 'Log out', group: 'Commands', sourceId: 'cmd' });
@@ -108,7 +127,16 @@ describe('isRecentEntry rejects malformed or unsafe stored data', () => {
     ['a badge with an unknown tone', { ...entry('a'), badges: [{ label: 'x', tone: 'loud' }] }, false],
     ['a badge with a known tone', { ...entry('a'), badges: [{ label: 'x', tone: 'warn' }] }, true],
     ['a badge without a tone', { ...entry('a'), badges: [{ label: 'x' }] }, true],
-    ['a route array with an object segment', { ...entry('a'), action: { route: ['a', {}] } }, false],
+    ['a route array with a matrix-param segment', { ...entry('a'), action: { route: ['/a', { tab: 'y', n: 2, on: true }] } }, true],
+    ['a route array with nested outlets', { ...entry('a'), action: { route: ['/a', { outlets: { side: ['x', 1] } }] } }, true],
+    ['a route array with an empty object segment', { ...entry('a'), action: { route: ['a', {}] } }, true],
+    ['a route array with a null segment', { ...entry('a'), action: { route: ['a', null] } }, false],
+    ['a route array with an array segment', { ...entry('a'), action: { route: ['a', ['b']] } }, false],
+    ['a route array with a boolean segment', { ...entry('a'), action: { route: ['a', true] } }, false],
+    ['a route array with a non-finite number', { ...entry('a'), action: { route: ['a', Infinity] } }, false],
+    ['a matrix param with a function value', { ...entry('a'), action: { route: ['a', { f: () => 1 }] } }, false],
+    ['a matrix param with an undefined value', { ...entry('a'), action: { route: ['a', { u: undefined }] } }, false],
+    ['a matrix param that is a class instance', { ...entry('a'), action: { route: ['a', { d: new Date(0) }] } }, false],
     ['a route array with string and number segments', { ...entry('a'), action: { route: ['a', 2] } }, true],
     ['a url action with a javascript: scheme', { ...entry('a'), action: { url: 'javascript:alert(1)' } }, false],
     ['a url action with a protocol-relative url', { ...entry('a'), action: { url: '//evil.com' } }, false],
