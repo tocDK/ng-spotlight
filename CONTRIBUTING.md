@@ -55,5 +55,6 @@ Each release:
 1. Bump `projects/ng-spotlight/package.json` and `projects/ng-spotlight/src/lib/version.ts`, move the
    `[Unreleased]` CHANGELOG entries under the new version, merge to `main`.
 2. `git tag v<version> && git push origin v<version>`.
-3. Approve the `npm` environment in the release run. The workflow checks the tag against the package version, runs
-   the tests, builds, publishes with provenance and creates the GitHub release.
+3. Approve the `npm` environment in the release run. The `build` job (read-only) checks the tag against the package
+   version, runs the tests, builds and packs the library; the `publish` job (environment `npm`) publishes that
+   tarball with provenance, without installing dependencies, and creates the GitHub release.

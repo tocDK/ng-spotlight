@@ -1,6 +1,9 @@
 name: release
 
 # Runs only when the operator pushes a version tag (see CONTRIBUTING.md "Releasing").
+# Two jobs: `build` installs dependencies and packs the library with read-only access;
+# `publish` holds the npm environment and the write/OIDC permissions, and never runs
+# npm ci or any dependency code: it only publishes the packed tarball.
 on:
   push:
     tags: ['v*']
@@ -12,13 +15,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
-    # Give this environment a required reviewer in the repo settings: the publish then waits for approval.
-    environment: npm
     permissions:
-      contents: write # gh release create
-      id-token: write # npm provenance
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,7 +26,6 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          registry-url: https://registry.npmjs.org
       - name: The tag must match the library version
         run: |
           expected="v$(node -p "require('./projects/ng-spotlight/package.json').version")"
@@ -40,11 +39,38 @@ jobs:
       - run: npm run test:coverage
       - run: npm run build:lib
       - run: npm run check:size
+      - name: Pack the library
+        working-directory: dist/ng-spotlight
+        run: npm pack
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: dist/ng-spotlight/*.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # Give this environment a required reviewer in the repo settings: the publish then waits for approval.
+    environment: npm
+    permissions:
+      contents: write # gh release create
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: package
+          path: package
       - name: Publish to npm with provenance
-        run: npm publish ./dist/ng-spotlight --provenance --access public
+        run: npm publish ./package/*.tgz --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create the GitHub release
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
         env:
           GH_TOKEN: ${{ github.token }}
