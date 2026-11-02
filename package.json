@@ -23,6 +23,12 @@
     "test:coverage": "vitest run --coverage",
     "test:lib": "vitest run --project lib",
     "test:demo": "vitest run --project demo",
+    "prestart": "node scripts/generate-example-sources.mjs",
+    "prebuild:demo": "node scripts/generate-example-sources.mjs",
+    "pretest": "node scripts/generate-example-sources.mjs",
+    "pretest:coverage": "node scripts/generate-example-sources.mjs",
+    "pretest:demo": "node scripts/generate-example-sources.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
     "lint": "eslint \"projects/**/*.ts\" \"projects/**/*.html\""
   },
   "devDependencies": {
