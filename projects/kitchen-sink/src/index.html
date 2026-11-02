@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>@tocdk/ng-spotlight kitchen sink</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Apply the persisted theme before Angular boots so dark-mode visitors see no flash.
+      (function () {
+        try {
+          var saved = localStorage.getItem('kitchen-sink:theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved ? saved === 'dark' : prefersDark) document.documentElement.classList.add('sp-dark');
+          else document.documentElement.classList.add('sp-light');
+        } catch (_) {
+          /* localStorage may throw in private mode */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>
