@@ -5,7 +5,7 @@ import { firstValueFrom, Subject, throwError } from 'rxjs';
 import { provideSpotlight } from './provide-spotlight';
 import { staticSource } from './sources/static-source';
 import { SPOTLIGHT_HTTP_DEFAULTS } from './tokens';
-import { SpotlightService, type SpotlightOption } from './spotlight.service';
+import { RUN_WAIT_MS, SpotlightService, type SpotlightOption } from './spotlight.service';
 import { flush, memoryRecent } from './testing.spec-util';
 import type { SpotlightConfig, SpotlightRecentEntry, SpotlightRecentStorage, SpotlightResult, SpotlightSource } from './types';
 
@@ -175,6 +175,83 @@ describe('SpotlightService', () => {
     await done;
     expect(svc.isOpen()).toBe(false);
     expect(runs).toBe(1);
+  });
+
+  describe('a run() that does not settle', () => {
+    let settle: { resolve: () => void; reject: (error: unknown) => void } = { resolve: () => undefined, reject: () => undefined };
+    const hanging = staticSource({
+      id: 'hang',
+      group: 'Hang',
+      items: [
+        {
+          id: 'never',
+          title: 'Never ends',
+          action: { run: () => new Promise<void>((resolve, reject) => (settle = { resolve, reject })) },
+        },
+        { id: 'quick', title: 'Quick one', action: { run: () => void ran.push('quick') } },
+      ],
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it(`closes the palette after ${RUN_WAIT_MS} ms and accepts the next select`, async () => {
+      vi.useFakeTimers();
+      const { svc } = setup({ sources: [hanging] });
+      svc.open();
+      svc.setQuery('never');
+      const pending = svc.select(opt(svc, 'Never ends'));
+      await vi.advanceTimersByTimeAsync(RUN_WAIT_MS - 1);
+      expect(svc.isOpen()).toBe(true);
+      await vi.advanceTimersByTimeAsync(1);
+      await pending;
+      expect(svc.isOpen()).toBe(false);
+      svc.open();
+      svc.setQuery('quick');
+      await svc.select(opt(svc, 'Quick one'));
+      expect(ran).toEqual(['quick']);
+      expect(svc.isOpen()).toBe(false);
+    });
+
+    it('releases the lock on close(); a late success records Recent and emits without closing a reopened palette', async () => {
+      const { svc, storage } = setup({ sources: [hanging] });
+      const emitted: string[] = [];
+      svc.selected.subscribe((item) => emitted.push(item.id));
+      svc.open();
+      svc.setQuery('never');
+      const pending = svc.select(opt(svc, 'Never ends'));
+      await flush();
+      svc.close();
+      svc.open();
+      svc.setQuery('quick');
+      await svc.select(opt(svc, 'Quick one'));
+      expect(ran).toEqual(['quick']);
+      svc.open();
+      settle.resolve();
+      await pending;
+      await flush();
+      expect(svc.isOpen()).toBe(true);
+      expect(emitted).toEqual(['quick', 'never']);
+      expect(storage.saved.at(-1)?.map((e) => e.id)).toEqual(['never', 'quick']);
+    });
+
+    it('reports a late rejection after the wait and keeps it out of Recent', async () => {
+      vi.useFakeTimers();
+      const { svc, errors, storage } = setup({ sources: [hanging] });
+      let emitted = false;
+      svc.selected.subscribe(() => (emitted = true));
+      svc.open();
+      svc.setQuery('never');
+      const pending = svc.select(opt(svc, 'Never ends'));
+      await vi.advanceTimersByTimeAsync(RUN_WAIT_MS);
+      await pending;
+      settle.reject(new Error('late'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(errors).toEqual([{ error: new Error('late'), source: 'hang' }]);
+      expect(storage.saved).toEqual([]);
+      expect(emitted).toBe(false);
+    });
   });
 
   it('reports a rejecting run() and keeps it out of Recent', async () => {

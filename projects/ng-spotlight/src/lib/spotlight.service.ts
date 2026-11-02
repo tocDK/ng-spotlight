@@ -27,6 +27,13 @@ import { isSafeUrl } from './url';
 
 export const RECENT_GROUP_ID = '__recent';
 
+/**
+ * How long select() waits for a run() action before it closes the palette anyway (spec §5.9:
+ * run() is awaited, then the palette closes). A run() that settles later still records Recent and
+ * emits `selected` (or reports its error); it never locks the palette.
+ */
+export const RUN_WAIT_MS = 5000;
+
 export interface SpotlightOption {
   /** `<groupKey>::<itemId>`, or `retry::<sourceId>` for an error row. */
   key: string;
@@ -86,7 +93,10 @@ export class SpotlightService {
   private readonly regs = signal<readonly SpotlightRegisteredSource[]>([]);
   private registrationOrder = 0;
   private configured = false;
-  private selecting = false;
+  /** Token of the select() whose action is still running; null when none is. */
+  private selecting: object | null = null;
+  /** Incremented on every open(), so a late action never closes a palette opened after it. */
+  private session = 0;
 
   /** Prefix for this instance's DOM ids. */
   readonly idPrefix = `sp-${nextInstanceId++}`;
@@ -279,6 +289,7 @@ export class SpotlightService {
     this._chip.set(null);
     this._activeKey.set(null);
     this._chipGroups.set([]);
+    this.session++;
     this._isOpen.set(true);
     void this.loadRecent();
     this.restartEngine();
@@ -286,6 +297,7 @@ export class SpotlightService {
 
   close(): void {
     if (!this._isOpen()) return;
+    this.selecting = null;
     this._isOpen.set(false);
     this.engine?.unsubscribe();
     this.engine = null;
@@ -341,25 +353,38 @@ export class SpotlightService {
       this.retry(option.sourceId);
       return;
     }
-    if (this.selecting) return;
-    this.selecting = true;
+    if (this.selecting !== null) return;
+    const token = {};
+    this.selecting = token;
+    const session = this.session;
     const item = option.item;
     const source: SpotlightSource = this.regs().find((reg) => reg.source.id === option.sourceId)?.source ?? {
       id: option.sourceId,
       search: () => [],
     };
-    try {
-      await this.runAction(item.action, modifiers.newTab === true, source);
-    } catch (error) {
-      this.report(error, source);
-      this.close();
+    const done = this.runAction(item.action, modifiers.newTab === true, source).then(
+      () => null,
+      (error: unknown) => ({ error }),
+    );
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const waited = new Promise<'waiting'>((resolve) => (timer = setTimeout(() => resolve('waiting'), RUN_WAIT_MS)));
+    const first = await Promise.race([done, waited]);
+    clearTimeout(timer);
+    if (this.selecting === token) this.selecting = null;
+
+    const finish = (outcome: { error: unknown } | null): void => {
+      if (outcome === null) this.remember(item, option.sourceId);
+      else this.report(outcome.error, source);
+      // Don't close a palette the user opened again after this select().
+      if (this.session === session) this.close();
+      if (outcome === null) this.selectedSubject.next(item);
+    };
+    if (first !== 'waiting') {
+      finish(first);
       return;
-    } finally {
-      this.selecting = false;
     }
-    this.remember(item, option.sourceId);
-    this.close();
-    this.selectedSubject.next(item);
+    if (this.session === session) this.close();
+    void done.then(finish);
   }
 
   private async runAction(action: SpotlightAction, newTab: boolean, source: SpotlightSource): Promise<void> {
