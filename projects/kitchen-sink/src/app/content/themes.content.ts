@@ -26,12 +26,12 @@ class from a partial \`SpotlightRenderer\` (\`{ dialog: { panelClass } }\` via \
       title: 'PrimeNG',
       markdown: `
 \`\`\`ts
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 providers: [providePrimeNG({ theme: { preset: Aura } }), provideSpotlight({ … }), provideSpotlightPrimeNG()]
 \`\`\`
 
 The palette then renders with \`p-iconfield\` + \`pInputText\`, \`p-chip\`, \`p-tag\` and \`pi\` icon classes, and takes its
-colours from the PrimeNG preset (\`SPOTLIGHT_PRIMENG_CSS\` maps the \`--sp-*\` variables to PrimeNG tokens), so white-label
+colours from the PrimeNG preset (the adapter maps the \`--sp-*\` variables to PrimeNG tokens), so white-label
 presets apply. Apps that never import \`/primeng\` never load PrimeNG. A test keeps its accessibility tree identical to the core's.
       `,
     },

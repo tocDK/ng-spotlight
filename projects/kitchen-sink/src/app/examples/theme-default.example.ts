@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // theme: 'default' is the default: one CSS-variable stylesheet with a dark variant (follows .sp-dark here).

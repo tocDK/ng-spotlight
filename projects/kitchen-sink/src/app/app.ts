@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { NAV_PAGES } from './app.routes';
 import { ThemeToggle } from './shared/theme-toggle';
 

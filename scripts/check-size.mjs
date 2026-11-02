@@ -5,7 +5,7 @@ import { gzipSync } from 'node:zlib';
 import { build } from 'esbuild';
 
 const LIMIT = 15 * 1024;
-const entry = 'dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs';
+const entry = 'dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight.mjs';
 
 if (!existsSync(entry)) {
   console.error(`[check-size] ${entry} not found; run npm run build:lib first`);

@@ -6,7 +6,7 @@ import {
   SpotlightTrigger,
   type SpotlightItem,
   type SpotlightSource,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 
 const COLORS = ['crimson', 'coral', 'gold', 'olive', 'teal', 'navy', 'indigo', 'orchid', 'salmon', 'tomato'];
 const picked = signal<string | null>(null);

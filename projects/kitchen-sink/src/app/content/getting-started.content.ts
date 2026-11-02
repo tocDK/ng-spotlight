@@ -8,11 +8,11 @@ export const GETTING_STARTED_CONTENT: PageContent = {
       title: 'Install',
       markdown: `
 \`\`\`bash
-npm i @tocdk/ng-spotlight
+npm i @tocdk-oss/ng-spotlight
 \`\`\`
 
 Peer dependencies: \`@angular/core\`, \`@angular/common\`, \`@angular/router\`, \`@angular/cdk\` (21.x) and \`rxjs\`.
-Versions follow Angular majors: \`21.x\` supports Angular 21. \`VERSION\` exports the installed version.
+Versions follow Angular majors: \`21.x\` supports Angular 21.
       `,
     },
     {
@@ -39,7 +39,7 @@ palette in the top bar is configured exactly like this, plus a few links.
       title: 'Open it from code',
       markdown: `
 \`SpotlightService\` exposes \`open(query?)\`, \`close()\`, \`isOpen\` (a signal) and \`selected\` (an Observable of the
-chosen \`SpotlightItem\`). \`SpotlightTrigger\` (\`spotlightTrigger\`, optionally \`spotlightTrigger="#"\`) opens it on click.
+chosen \`SpotlightItem\`), and nothing else: the palette's internal state is not public API. \`SpotlightTrigger\` (\`spotlightTrigger\`, optionally \`spotlightTrigger="#"\`) opens it on click.
 
 Call \`provideSpotlight()\` again in a lazy route's \`providers\` to add sources there; they disappear when that
 injector is destroyed. A child call only adds \`sources\` (and \`http\` defaults for them): its \`texts\`, \`hotkeys\`,

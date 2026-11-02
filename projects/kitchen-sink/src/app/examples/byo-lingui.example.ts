@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { LinguiService, provideLingui, type LinguiCatalog } from '@tocdk/lingui-angular';
-import { localStorageRecent, provideSpotlight, SpotlightFooterTemplate, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightFooterTemplate, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // Explicit ids keep the catalogs readable; a real app extracts them with `lingui extract`.

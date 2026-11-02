@@ -1,5 +1,14 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, provideZonelessChangeDetection, type Provider, type Type } from '@angular/core';
+import {
+  ApplicationRef,
+  Component,
+  createComponent,
+  createEnvironmentInjector,
+  EnvironmentInjector,
+  provideZonelessChangeDetection,
+  type Provider,
+  type Type,
+} from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { throwError } from 'rxjs';
@@ -79,6 +88,32 @@ function typeInto(text: string): void {
 function press(target: EventTarget, init: KeyboardEventInit): void {
   target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init }));
 }
+
+@Component({
+  imports: [SpotlightHost],
+  template: `<spotlight-host /><spotlight-host />`,
+})
+class TwoHostsWrapper {}
+
+/** A second, isolated palette with its own <spotlight-host>, attached to the test application. */
+function isolatedPalette(config: SpotlightConfig = {}) {
+  const env = createEnvironmentInjector(
+    [provideSpotlight({ isolated: true, recent: { storage: memoryRecent() }, sources: [pages], ...config })],
+    TestBed.inject(EnvironmentInjector),
+  );
+  const ref = createComponent(SpotlightHost, { environmentInjector: env });
+  TestBed.inject(ApplicationRef).attachView(ref.hostView);
+  document.body.appendChild(ref.location.nativeElement as HTMLElement);
+  return {
+    svc: env.get(SpotlightService),
+    destroy: () => {
+      ref.destroy();
+      env.destroy();
+    },
+  };
+}
+
+const hotkey = () => press(document.body, { key: ' ', code: 'Space', ctrlKey: true });
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -165,6 +200,69 @@ describe('SpotlightHost', () => {
     press(document.body, { key: 'k', code: 'KeyK', ctrlKey: true });
     await stable();
     expect(svc.isOpen()).toBe(true);
+  });
+
+  describe('with several palettes on the page', () => {
+    it('lets only the first palette react to a shared hotkey until another one is opened', async () => {
+      const { svc: root, stable } = await setup();
+      const other = isolatedPalette();
+      hotkey();
+      await stable();
+      expect([root.isOpen(), other.svc.isOpen()]).toEqual([true, false]);
+      expect(qa('.sp-pane')).toHaveLength(1);
+      hotkey();
+      await stable();
+      expect([root.isOpen(), other.svc.isOpen()]).toEqual([false, false]);
+      other.destroy();
+    });
+
+    it('hands the hotkey to the palette opened most recently, and the open one always closes first', async () => {
+      const { svc: root, stable } = await setup();
+      const other = isolatedPalette();
+      other.svc.open();
+      await stable();
+      other.svc.close();
+      await stable();
+      hotkey();
+      await stable();
+      expect([root.isOpen(), other.svc.isOpen()]).toEqual([false, true]);
+      hotkey();
+      await stable();
+      expect([root.isOpen(), other.svc.isOpen()]).toEqual([false, false]);
+      root.open();
+      await stable();
+      hotkey();
+      await stable();
+      expect([root.isOpen(), other.svc.isOpen()]).toEqual([false, false]);
+      hotkey();
+      await stable();
+      expect([root.isOpen(), other.svc.isOpen()]).toEqual([true, false]);
+      other.destroy();
+    });
+
+    it('skips palettes whose hotkeys do not match, and destroyed palettes', async () => {
+      const { svc: root, stable } = await setup({ hotkeys: ['mod.k'] });
+      const other = isolatedPalette();
+      hotkey();
+      await stable();
+      expect([root.isOpen(), other.svc.isOpen()]).toEqual([false, true]);
+      hotkey();
+      await stable();
+      other.destroy();
+      press(document.body, { key: 'k', code: 'KeyK', ctrlKey: true });
+      await stable();
+      expect(root.isOpen()).toBe(true);
+    });
+
+    it('toggles a palette once when two hosts share its service', async () => {
+      const { svc, stable } = await setup({}, TwoHostsWrapper);
+      hotkey();
+      await stable();
+      expect(svc.isOpen()).toBe(true);
+      hotkey();
+      await stable();
+      expect(svc.isOpen()).toBe(false);
+    });
   });
 
   it('keeps a single overlay under key repeat and repeated open()', async () => {

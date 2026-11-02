@@ -1,5 +1,5 @@
 {
-  "name": "@tocdk/ng-spotlight",
+  "name": "@tocdk-oss/ng-spotlight",
   "version": "21.0.0",
   "description": "Keyboard-first spotlight / command palette for Angular: headless core plus a PrimeNG adapter.",
   "license": "MIT",

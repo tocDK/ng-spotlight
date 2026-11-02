@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
-  "description": "Workspace for @tocdk/ng-spotlight and its kitchen sink.",
+  "description": "Workspace for @tocdk-oss/ng-spotlight and its kitchen sink.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tocDK/ng-spotlight.git"
@@ -32,7 +32,8 @@
     "pretest:coverage": "node scripts/generate-example-sources.mjs",
     "pretest:demo": "node scripts/generate-example-sources.mjs",
     "check:docs": "node scripts/check-docs.mjs",
-    "lint": "eslint \"projects/**/*.ts\" \"projects/**/*.html\""
+    "lint": "eslint \"projects/**/*.ts\" \"projects/**/*.html\"",
+    "check:api": "node scripts/check-api.mjs"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.9.5",

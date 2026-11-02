@@ -1,7 +1,7 @@
 # ng-spotlight
 
 [![CI](https://github.com/tocDK/ng-spotlight/actions/workflows/ci.yml/badge.svg)](https://github.com/tocDK/ng-spotlight/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@tocdk/ng-spotlight.svg)](https://www.npmjs.com/package/@tocdk/ng-spotlight)
+[![npm](https://img.shields.io/npm/v/@tocdk-oss/ng-spotlight.svg)](https://www.npmjs.com/package/@tocdk-oss/ng-spotlight)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Angular 21](https://img.shields.io/badge/angular-21-dd0031.svg)](https://angular.dev/)
 
@@ -22,7 +22,7 @@ Apps with many pages and lots of records are slow to navigate by menu. ng-spotli
 
 ```ts
 // app.config.ts
-import { provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk/ng-spotlight';
+import { provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk-oss/ng-spotlight';
 
 provideSpotlight({
   hotkeys: ['ctrl.space', 'mod.k'],
@@ -50,7 +50,7 @@ The HTTP source expects a simple grouped response by default, and you can map an
 ## Install
 
 ```bash
-npm i @tocdk/ng-spotlight
+npm i @tocdk-oss/ng-spotlight
 ```
 
 Peer dependencies: `@angular/core`, `@angular/common`, `@angular/router`, `@angular/cdk` and `rxjs`. Versions follow
@@ -61,7 +61,7 @@ Angular majors: `21.x` supports Angular 21. For the PrimeNG adapter you also nee
 ```ts
 // app.config.ts
 import { provideRouter } from '@angular/router';
-import { provideSpotlight, routeSource } from '@tocdk/ng-spotlight';
+import { provideSpotlight, routeSource } from '@tocdk-oss/ng-spotlight';
 
 export const appConfig = {
   providers: [provideRouter(routes), provideSpotlight({ sources: [routeSource()] })],
@@ -80,7 +80,7 @@ are skipped; `data: { spotlight: false }` opts a route out.
 ## Sources
 
 ```ts
-import { localStorageRecent, provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk-oss/ng-spotlight';
 
 provideSpotlight({
   hotkeys: ['ctrl.space', 'mod.k'],                       // default; 'mod' = Cmd on macOS, Ctrl elsewhere
@@ -101,20 +101,23 @@ provideSpotlight({
 - `httpSource({ url })` sends `GET {url}?q={query}` (plus `chip={groupId}` when a chip is active) and expects
   `{ groups: [{ id, label, total?, items }] }` or a flat item array. Results keep the server's order. Override the
   request and response globally (`provideSpotlight({ http: { request, map } })`) or per source
-  (`httpSource({ url, request, map })`). The JSON Schema ships as `@tocdk/ng-spotlight/schema/spotlight-response.schema.json`.
+  (`httpSource({ url, request, map })`). The JSON Schema ships as `@tocdk-oss/ng-spotlight/schema/spotlight-response.schema.json`.
 - Any object implementing `SpotlightSource` is a source: `search(query, ctx)` may return items, a promise or an
   Observable, and should stop when `ctx.signal` aborts.
 
-Each item has an `action`: `{ route }` (Router), `{ url, newTab? }` (only http, https, mailto, tel and relative URLs
-are allowed) or `{ run }`. A query that starts with a source's `prefix` (for example `#` or `@`) searches only that source.
+Each item has an `action`: `{ route }` (Router), `{ url, newTab? }` (only http, https, mailto, tel and path-relative
+URLs are allowed; protocol-relative `//host` URLs are blocked) or `{ run }`. The palette waits up to 5 seconds for a
+`run()` promise, then closes anyway; `selected` fires when it settles. A query that starts with a source's `prefix` (for example `#` or `@`) searches only that source.
 Call `provideSpotlight()` again in a lazy route's `providers` to add sources for that area. Such a child call only
 adds `sources` (and `http` defaults for them); its `texts`, `hotkeys`, `recent`, `theme` and `onError` are ignored
 (with a dev-mode warning) because the first call owns them. Pass `isolated: true` for a separate palette instead.
+With several palettes on a page, one hotkey press reaches exactly one of them: the open one (so the hotkey closes it),
+else the one opened most recently, else the `<spotlight-host>` created first. Place one `<spotlight-host>` per palette.
 
 ## CI check for unlabelled routes
 
 ```ts
-import { spotlightRouteAudit } from '@tocdk/ng-spotlight';
+import { spotlightRouteAudit } from '@tocdk-oss/ng-spotlight';
 
 it('labels every admin route', () => {
   expect(spotlightRouteAudit(adminRoutes)).toEqual([]);
@@ -139,7 +142,7 @@ The default theme uses CSS variables only (`--sp-bg`, `--sp-fg`, `--sp-muted`, `
 `theme: 'none'` ships no CSS.
 
 ```ts
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 
 providers: [providePrimeNG({ theme: { preset: Aura } }), provideSpotlight({ /* … */ }), provideSpotlightPrimeNG()];
 ```
@@ -156,12 +159,30 @@ count. Keys: ↑/↓ move, Enter opens, Ctrl/⌘+Enter opens links in a new tab,
 The tests run axe on the open palette with zero violations. Note: macOS may use Ctrl+Space to switch input source,
 which is why ⌘K is in the default set.
 
+## API
+
+The whole public API, with every member, is snapshotted in [`api/ng-spotlight.api.md`](api/ng-spotlight.api.md) and
+[`api/ng-spotlight-primeng.api.md`](api/ng-spotlight-primeng.api.md); CI fails when the built `.d.ts` drifts from them.
+
+| Export | What it is |
+|---|---|
+| `provideSpotlight(config \| () => config)` | Sets up a palette (`SpotlightConfig`: `hotkeys`, `texts`, `recent`, `http`, `theme`, `onError`, `sources`, `isolated`) |
+| `SpotlightService` | `open(query?)`, `close()`, `isOpen` (signal), `selected` (Observable of the chosen item). Nothing else is public |
+| `<spotlight-host>`, `spotlightTrigger` | The palette, and a directive that opens it on click (`spotlightTrigger="#"` sets a query) |
+| `spotlightItem`, `spotlightEmpty`, `spotlightFooter` | Templates, with `SpotlightItemTemplateContext` and `SpotlightEmptyTemplateContext` |
+| `routeSource`, `staticSource`, `httpSource`, `spotlightRouteAudit` | Built-in sources and the route audit, with their `*Options` types |
+| `SpotlightItem`, `SpotlightItemInput`, `SpotlightAction`, `SpotlightBadge`, `SpotlightSource`, `SpotlightContext`, `SpotlightResult`, `SpotlightResponse`, `SpotlightGroup`, `SpotlightHttpOptions`, `SpotlightHttpRequest`, `SpotlightRouteData` | Data types |
+| `SpotlightTexts`, `SpotlightTextValue` | UI strings (keys left out keep their English defaults) |
+| `localStorageRecent`, `SpotlightRecentStorage`, `SpotlightRecentEntry`, `SpotlightStoredAction` | Recent items and their storage |
+| `SPOTLIGHT_RENDERER`, `SpotlightRenderer`, the part context types, `SpotlightDefault*` parts | Renderer contract for adapters |
+| `/primeng`: `provideSpotlightPrimeNG()`, `SPOTLIGHT_PRIMENG_RENDERER`, `SpotlightPrimeNg*` parts | PrimeNG adapter |
+
 ## Packages
 
 | Import | What |
 |---|---|
-| `@tocdk/ng-spotlight` | Headless core (Angular + CDK only) |
-| `@tocdk/ng-spotlight/primeng` | PrimeNG adapter (optional peer dependency) |
+| `@tocdk-oss/ng-spotlight` | Headless core (Angular + CDK only) |
+| `@tocdk-oss/ng-spotlight/primeng` | PrimeNG adapter (optional peer dependency) |
 
 Versions follow Angular majors: `21.x` is for Angular 21.
 

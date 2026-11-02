@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tocdk.github.io/ng-spotlight/schema/spotlight-response.schema.json",
   "title": "SpotlightResult",
-  "description": "Response format for @tocdk/ng-spotlight httpSource: a grouped SpotlightResponse or a flat SpotlightItem array (grouped by item.group).",
+  "description": "Response format for @tocdk-oss/ng-spotlight httpSource: a grouped SpotlightResponse or a flat SpotlightItem array (grouped by item.group).",
   "oneOf": [
     { "$ref": "#/$defs/SpotlightResponse" },
     { "type": "array", "items": { "$ref": "#/$defs/SpotlightItem" } }

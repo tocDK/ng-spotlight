@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { localStorageRecent, provideSpotlight, routeSource, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, routeSource, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk-oss/ng-spotlight';
 
 const greetings = signal(0);
 

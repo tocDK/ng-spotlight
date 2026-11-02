@@ -3,7 +3,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import Aura from '@primeuix/themes/aura';
-import { localStorageRecent, provideSpotlight, routeSource, staticSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, routeSource, staticSource } from '@tocdk-oss/ng-spotlight';
 import { providePrimeNG } from 'primeng/config';
 import { App } from './app/app';
 import { routes } from './app/app.routes';
@@ -34,7 +34,7 @@ bootstrapApplication(App, {
               title: 'npm package',
               icon: 'pi pi-box',
               keywords: ['install'],
-              action: { url: 'https://www.npmjs.com/package/@tocdk/ng-spotlight', newTab: true },
+              action: { url: 'https://www.npmjs.com/package/@tocdk-oss/ng-spotlight', newTab: true },
             },
           ],
         }),

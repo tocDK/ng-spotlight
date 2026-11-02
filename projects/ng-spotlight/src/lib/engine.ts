@@ -52,7 +52,8 @@ export interface SpotlightEngineOptions {
   sources: readonly SpotlightRegisteredSource[];
   input$: Observable<SpotlightQueryState>;
   retry$: Observable<string>;
-  recentIds: () => ReadonlySet<string>;
+  /** Ids of this source's items that are in Recent; the boost never crosses sources. */
+  recentIds: (sourceId: string) => ReadonlySet<string>;
   onError: (error: unknown, source: SpotlightSource) => void;
   /**
    * Group labels learned from earlier answers. Pass the same map on every restart so a
@@ -179,7 +180,7 @@ function runSource(
           for (const g of groups) known.set(g.id, g.label);
           if (state.chip !== null) groups = groups.filter((g) => g.id === state.chip);
           if (source.local === true && plan.query !== '') {
-            const recent = options.recentIds();
+            const recent = options.recentIds(source.id);
             groups = groups.map((g) => ({ ...g, items: rankItems(g.items, plan.query, recent) }));
           }
           if (plan.query === '' && !browseAll) {

@@ -9,7 +9,7 @@ import {
   type SpotlightBadgeContext,
   type SpotlightRenderer,
   type SpotlightRowContext,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 /** A row part: markup only; it renders badges through the badge part it is given. The host already provides role="option", ids and aria-selected. */

@@ -21,7 +21,7 @@ const item = (id: string, title: string, group: string, extra: Partial<Spotlight
 const regsOf = (sources: SpotlightSource[]): SpotlightRegisteredSource[] =>
   sources.map((source, order) => ({ source, injector: Injector.NULL, order }));
 
-function harness(sources: SpotlightSource[]) {
+function harness(sources: SpotlightSource[], recentIds: (sourceId: string) => ReadonlySet<string> = () => new Set<string>()) {
   const input = new BehaviorSubject<SpotlightQueryState>({ query: '', chip: null });
   const retry = new Subject<string>();
   const errors: string[] = [];
@@ -30,7 +30,7 @@ function harness(sources: SpotlightSource[]) {
     sources: regsOf(sources),
     input$: input,
     retry$: retry,
-    recentIds: () => new Set<string>(),
+    recentIds,
     onError: (_error, source) => errors.push(source.id),
   }).subscribe((groups) => emissions.push(groups));
   const latest = () => emissions.at(-1) ?? [];
@@ -99,6 +99,23 @@ describe('createSearchEngine', () => {
     expect(h.titles()).toEqual(['Settings', 'Customers', 'Orders', 'Beta', 'Alpha']);
     h.set('pref');
     expect(h.titles()).toEqual(['Settings', 'Beta', 'Alpha']);
+  });
+
+  it('asks for Recent ids per source, so the boost never reaches a same-id item in another source', () => {
+    const local = (id: string): SpotlightSource => ({
+      id,
+      group: id,
+      local: true,
+      search: () => [item('y', 'Report', id), item('x', 'Reports', id)],
+    });
+    const asked: string[] = [];
+    const h = harness([local('a'), local('b')], (sourceId) => (asked.push(sourceId), new Set(sourceId === 'a' ? ['x'] : [])));
+    h.set('rep');
+    expect(h.latest().map((g) => [g.sourceId, g.items.map((i) => i.id)])).toEqual([
+      ['a', ['x', 'y']],
+      ['b', ['y', 'x']],
+    ]);
+    expect(new Set(asked)).toEqual(new Set(['a', 'b']));
   });
 
   it('shows only suggested items on the empty query', () => {

@@ -7,8 +7,36 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) return false;
+  const proto: unknown = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+/** JSON data that reads back exactly as written: no undefined, functions, NaN or class instances. */
+function isJsonData(value: unknown, depth = 0): boolean {
+  if (depth > 8) return false;
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return true;
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every((v) => isJsonData(v, depth + 1));
+  return isPlainObject(value) && Object.values(value).every((v) => isJsonData(v, depth + 1));
+}
+
+/**
+ * Route segments that survive storage: strings, finite numbers and plain JSON objects (matrix
+ * params such as `{ tab: 'orders' }`, or `{ outlets: … }`). The same rule decides what is saved
+ * and what is loaded back, so a saved route is never dropped on reload.
+ */
 function isRouteSegments(value: unknown): boolean {
-  return Array.isArray(value) && value.every((segment) => typeof segment === 'string' || typeof segment === 'number');
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (segment) =>
+        typeof segment === 'string' ||
+        (typeof segment === 'number' && Number.isFinite(segment)) ||
+        (isPlainObject(segment) && isJsonData(segment)),
+    )
+  );
 }
 
 function isBadge(value: unknown): value is SpotlightBadge {
@@ -71,14 +99,20 @@ export function localStorageRecent(key: string): SpotlightRecentStorage {
   };
 }
 
-/** Keeps only the fields needed to re-render the item and re-run a route or url action. */
+/**
+ * Keeps only the fields needed to re-render the item and re-run a route or url action. A route
+ * array that would not survive JSON (a Date, a function, `undefined`, NaN, …) is stored by id
+ * only, like a run() item, and resolved through its source on the next load.
+ */
 export function toRecentEntry(item: SpotlightItem, sourceId: string): SpotlightRecentEntry {
   const entry: SpotlightRecentEntry = { id: item.id, title: item.title, group: item.group, sourceId };
   if (item.subtitle !== undefined) entry.subtitle = item.subtitle;
   if (item.icon !== undefined) entry.icon = item.icon;
   if (item.badges !== undefined) entry.badges = item.badges;
   const action = item.action;
-  if ('route' in action) entry.action = { route: action.route };
+  if ('route' in action) {
+    if (typeof action.route === 'string' || isRouteSegments(action.route)) entry.action = { route: action.route };
+  }
   else if ('url' in action) entry.action = action.newTab ? { url: action.url, newTab: true } : { url: action.url };
   return entry;
 }

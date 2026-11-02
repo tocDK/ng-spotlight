@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpResponse, type HttpInterceptorFn } from '@angular/common/http';
-import type { SpotlightGroup, SpotlightItem, SpotlightResponse } from '@tocdk/ng-spotlight';
+import type { SpotlightGroup, SpotlightItem, SpotlightResponse } from '@tocdk-oss/ng-spotlight';
 import { delay, of, switchMap, throwError, timer } from 'rxjs';
 
 const CUSTOMERS = ['Acme A/S', 'Nordlys ApS', 'Fjord Media', 'Bølge Consulting', 'Havn & Co', 'Skov Retail', 'Acme Nordic'];

@@ -5,7 +5,7 @@ import { firstValueFrom, Subject, throwError } from 'rxjs';
 import { provideSpotlight } from './provide-spotlight';
 import { staticSource } from './sources/static-source';
 import { SPOTLIGHT_HTTP_DEFAULTS } from './tokens';
-import { SpotlightService, type SpotlightOption } from './spotlight.service';
+import { RUN_WAIT_MS, SpotlightService, type SpotlightOption } from './spotlight.service';
 import { flush, memoryRecent } from './testing.spec-util';
 import type { SpotlightConfig, SpotlightRecentEntry, SpotlightRecentStorage, SpotlightResult, SpotlightSource } from './types';
 
@@ -177,6 +177,83 @@ describe('SpotlightService', () => {
     expect(runs).toBe(1);
   });
 
+  describe('a run() that does not settle', () => {
+    let settle: { resolve: () => void; reject: (error: unknown) => void } = { resolve: () => undefined, reject: () => undefined };
+    const hanging = staticSource({
+      id: 'hang',
+      group: 'Hang',
+      items: [
+        {
+          id: 'never',
+          title: 'Never ends',
+          action: { run: () => new Promise<void>((resolve, reject) => (settle = { resolve, reject })) },
+        },
+        { id: 'quick', title: 'Quick one', action: { run: () => void ran.push('quick') } },
+      ],
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it(`closes the palette after ${RUN_WAIT_MS} ms and accepts the next select`, async () => {
+      vi.useFakeTimers();
+      const { svc } = setup({ sources: [hanging] });
+      svc.open();
+      svc.setQuery('never');
+      const pending = svc.select(opt(svc, 'Never ends'));
+      await vi.advanceTimersByTimeAsync(RUN_WAIT_MS - 1);
+      expect(svc.isOpen()).toBe(true);
+      await vi.advanceTimersByTimeAsync(1);
+      await pending;
+      expect(svc.isOpen()).toBe(false);
+      svc.open();
+      svc.setQuery('quick');
+      await svc.select(opt(svc, 'Quick one'));
+      expect(ran).toEqual(['quick']);
+      expect(svc.isOpen()).toBe(false);
+    });
+
+    it('releases the lock on close(); a late success records Recent and emits without closing a reopened palette', async () => {
+      const { svc, storage } = setup({ sources: [hanging] });
+      const emitted: string[] = [];
+      svc.selected.subscribe((item) => emitted.push(item.id));
+      svc.open();
+      svc.setQuery('never');
+      const pending = svc.select(opt(svc, 'Never ends'));
+      await flush();
+      svc.close();
+      svc.open();
+      svc.setQuery('quick');
+      await svc.select(opt(svc, 'Quick one'));
+      expect(ran).toEqual(['quick']);
+      svc.open();
+      settle.resolve();
+      await pending;
+      await flush();
+      expect(svc.isOpen()).toBe(true);
+      expect(emitted).toEqual(['quick', 'never']);
+      expect(storage.saved.at(-1)?.map((e) => e.id)).toEqual(['never', 'quick']);
+    });
+
+    it('reports a late rejection after the wait and keeps it out of Recent', async () => {
+      vi.useFakeTimers();
+      const { svc, errors, storage } = setup({ sources: [hanging] });
+      let emitted = false;
+      svc.selected.subscribe(() => (emitted = true));
+      svc.open();
+      svc.setQuery('never');
+      const pending = svc.select(opt(svc, 'Never ends'));
+      await vi.advanceTimersByTimeAsync(RUN_WAIT_MS);
+      await pending;
+      settle.reject(new Error('late'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(errors).toEqual([{ error: new Error('late'), source: 'hang' }]);
+      expect(storage.saved).toEqual([]);
+      expect(emitted).toBe(false);
+    });
+  });
+
   it('reports a rejecting run() and keeps it out of Recent', async () => {
     const failing = staticSource({
       id: 'failing',
@@ -206,6 +283,108 @@ describe('SpotlightService', () => {
     await flush();
     expect(svc.groups()[0].items.map((i) => i.title)).toEqual(['Say hello']);
     await svc.select(svc.options()[0]);
+    expect(ran).toEqual(['hello']);
+  });
+
+  it('keeps a Recent route with matrix params across a reload', async () => {
+    const route = ['/customers', 42, { tab: 'orders' }];
+    const matrix = staticSource({ id: 'matrix', group: 'Customers', items: [{ id: 'c42', title: 'Customer 42', action: { route } }] });
+    const storage = memoryRecent();
+    const first = setup({ sources: [matrix], recent: { storage } });
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    first.svc.open();
+    first.svc.setQuery('cust');
+    await first.svc.select(opt(first.svc, 'Customer 42'));
+    expect(storage.saved.at(-1)?.[0].action).toEqual({ route });
+
+    TestBed.resetTestingModule();
+    const { svc } = setup({ sources: [matrix], recent: { storage } });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    svc.open();
+    await flush();
+    expect(svc.groups()[0].items.map((i) => i.title)).toEqual(['Customer 42']);
+    await svc.select(svc.options()[0]);
+    expect(navigate).toHaveBeenCalledWith(route);
+  });
+
+  it('stores a route that is not plain JSON by id and resolves it through its source, now and after a reload', async () => {
+    const route = ['/report', { from: new Date(0) }];
+    const report = staticSource({ id: 'report', group: 'Reports', items: [{ id: 'r1', title: 'Report', action: { route } }] });
+    const storage = memoryRecent();
+    const first = setup({ sources: [report], recent: { storage } });
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    first.svc.open();
+    first.svc.setQuery('rep');
+    await first.svc.select(opt(first.svc, 'Report'));
+    expect(storage.saved.at(-1)).toEqual([{ id: 'r1', title: 'Report', group: 'Reports', sourceId: 'report' }]);
+    first.svc.open();
+    await flush();
+    expect(first.svc.groups()[0].items.map((i) => i.title)).toEqual(['Report']);
+    first.svc.close();
+
+    TestBed.resetTestingModule();
+    const { svc } = setup({ sources: [report], recent: { storage } });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    svc.open();
+    await flush();
+    expect(svc.groups()[0].items.map((i) => i.title)).toEqual(['Report']);
+    await svc.select(svc.options()[0]);
+    expect(navigate).toHaveBeenCalledWith(route);
+  });
+
+  it('boosts a Recent item only in the source it was picked from, not a same-id item elsewhere', async () => {
+    const reports = (id: string) =>
+      staticSource({
+        id,
+        group: id,
+        items: [
+          { id: 'y', title: 'Report', action: { route: `/${id}/y` } },
+          { id: 'x', title: 'Reports', action: { route: `/${id}/x` } },
+        ],
+      });
+    const storage = memoryRecent([{ id: 'x', title: 'Reports', group: 'a', sourceId: 'a', action: { route: '/a/x' } }]);
+    const { svc } = setup({ sources: [reports('a'), reports('b')], recent: { storage } });
+    svc.open();
+    await flush();
+    svc.setQuery('rep');
+    const order = (group: string) => svc.groups().find((g) => g.id === group)?.items.map((i) => i.id);
+    expect(order('a')).toEqual(['x', 'y']);
+    expect(order('b')).toEqual(['y', 'x']);
+  });
+
+  it('logs source errors to the console when no onError is given', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const failing: SpotlightSource = { id: 'broken', group: 'Broken', search: () => throwError(() => new Error('down')) };
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideRouter([]), provideSpotlight({ recent: { storage: memoryRecent() }, sources: [failing] })],
+    });
+    const svc = TestBed.inject(SpotlightService);
+    svc.open();
+    svc.setQuery('x');
+    await flush();
+    expect(error).toHaveBeenCalledWith('[ng-spotlight] source "broken" failed', new Error('down'));
+  });
+
+  it('survives an onError handler that throws', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { svc } = setup({
+      onError: () => {
+        throw new Error('handler broke');
+      },
+    });
+    svc.open();
+    svc.setQuery('evil');
+    await svc.select(opt(svc, 'Evil link'));
+    expect(error).toHaveBeenCalledWith('[ng-spotlight] onError threw', new Error('handler broke'));
+    expect(svc.isOpen()).toBe(false);
+  });
+
+  it('still runs an item whose source was removed while the palette was open', async () => {
+    const { svc } = setup();
+    svc.open();
+    svc.setQuery('hello');
+    const option = { ...opt(svc, 'Say hello'), sourceId: 'gone' };
+    await svc.select(option);
     expect(ran).toEqual(['hello']);
   });
 

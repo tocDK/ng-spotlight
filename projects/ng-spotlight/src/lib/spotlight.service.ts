@@ -27,6 +27,13 @@ import { isSafeUrl } from './url';
 
 export const RECENT_GROUP_ID = '__recent';
 
+/**
+ * How long select() waits for a run() action before it closes the palette anyway (spec §5.9:
+ * run() is awaited, then the palette closes). A run() that settles later still records Recent and
+ * emits `selected` (or reports its error); it never locks the palette.
+ */
+export const RUN_WAIT_MS = 5000;
+
 export interface SpotlightOption {
   /** `<groupKey>::<itemId>`, or `retry::<sourceId>` for an error row. */
   key: string;
@@ -86,9 +93,12 @@ export class SpotlightService {
   private readonly regs = signal<readonly SpotlightRegisteredSource[]>([]);
   private registrationOrder = 0;
   private configured = false;
-  private selecting = false;
+  /** Token of the select() whose action is still running; null when none is. */
+  private selecting: object | null = null;
+  /** Incremented on every open(), so a late action never closes a palette opened after it. */
+  private session = 0;
 
-  /** Prefix for this instance's DOM ids. */
+  /** @internal Prefix for this instance's DOM ids. */
   readonly idPrefix = `sp-${nextInstanceId++}`;
 
   private _settings: SpotlightSettings = {
@@ -103,8 +113,10 @@ export class SpotlightService {
   private readonly _isOpen = signal(false);
   readonly isOpen = this._isOpen.asReadonly();
   private readonly _query = signal('');
+  /** @internal */
   readonly query = this._query.asReadonly();
   private readonly _chip = signal<string | null>(null);
+  /** @internal */
   readonly chip = this._chip.asReadonly();
   private readonly _results = signal<readonly SpotlightGroupState[]>([]);
   private readonly _recent = signal<readonly SpotlightRecentEntry[]>([]);
@@ -130,7 +142,7 @@ export class SpotlightService {
     return out;
   });
 
-  /** Visible groups: Recent first on the empty query, then the sources' groups. */
+  /** @internal Visible groups: Recent first on the empty query, then the sources' groups. */
   readonly groups = computed<readonly SpotlightGroupState[]>(() => {
     const results = this._results();
     if (this._query().trim() !== '' || this._chip() !== null) return results;
@@ -152,7 +164,7 @@ export class SpotlightService {
     return [recentGroup, ...rest];
   });
 
-  /** Every selectable row in display order, including one retry row per failed source. */
+  /** @internal Every selectable row in display order, including one retry row per failed source. */
   readonly options = computed<readonly SpotlightOption[]>(() => {
     const out: SpotlightOption[] = [];
     const recent = this.recentItems();
@@ -185,6 +197,7 @@ export class SpotlightService {
     return out;
   });
 
+  /** @internal */
   readonly activeIndex = computed(() => {
     const options = this.options();
     if (options.length === 0) return -1;
@@ -194,15 +207,19 @@ export class SpotlightService {
     return index === -1 ? 0 : index;
   });
 
+  /** @internal */
   readonly activeOption = computed<SpotlightOption | null>(() => {
     const index = this.activeIndex();
     return index === -1 ? null : this.options()[index];
   });
 
+  /** @internal */
   readonly chips = computed<readonly SpotlightChip[]>(() => [{ id: null, label: this.texts.all() }, ...this._chipGroups()]);
 
+  /** @internal */
   readonly loading = computed(() => this._results().some((g) => g.loading));
 
+  /** @internal */
   readonly announcement = computed(() => {
     const count = this.options().filter((o) => o.kind === 'item').length;
     // Announce "Loading…" rather than "No results" while sources are still answering.
@@ -217,10 +234,12 @@ export class SpotlightService {
     });
   }
 
+  /** @internal */
   get texts(): ResolvedSpotlightTexts {
     return this._texts();
   }
 
+  /** @internal */
   get settings(): Readonly<SpotlightSettings> {
     return this._settings;
   }
@@ -279,6 +298,7 @@ export class SpotlightService {
     this._chip.set(null);
     this._activeKey.set(null);
     this._chipGroups.set([]);
+    this.session++;
     this._isOpen.set(true);
     void this.loadRecent();
     this.restartEngine();
@@ -286,6 +306,7 @@ export class SpotlightService {
 
   close(): void {
     if (!this._isOpen()) return;
+    this.selecting = null;
     this._isOpen.set(false);
     this.engine?.unsubscribe();
     this.engine = null;
@@ -295,23 +316,27 @@ export class SpotlightService {
     this._activeKey.set(null);
   }
 
+  /** @internal */
   toggle(): void {
     if (this._isOpen()) this.close();
     else this.open();
   }
 
+  /** @internal */
   setQuery(query: string): void {
     this._query.set(query);
     this._activeKey.set(null);
     this.input$.next({ query, chip: this._chip() });
   }
 
+  /** @internal */
   setChip(chip: string | null): void {
     this._chip.set(chip);
     this._activeKey.set(null);
     this.input$.next({ query: this._query(), chip });
   }
 
+  /** @internal */
   cycleChip(direction: 1 | -1): void {
     const chips = this.chips();
     if (chips.length < 2) return;
@@ -319,6 +344,7 @@ export class SpotlightService {
     this.setChip(chips[(index + direction + chips.length) % chips.length].id);
   }
 
+  /** @internal */
   moveActive(delta: number): void {
     const options = this.options();
     if (options.length === 0) return;
@@ -327,39 +353,54 @@ export class SpotlightService {
     this._activeKey.set(options[next].key);
   }
 
+  /** @internal */
   setActive(key: string): void {
     this._activeKey.set(key);
   }
 
+  /** @internal */
   retry(sourceId: string): void {
     this.retry$.next(sourceId);
   }
 
-  /** Runs the action, records Recent, closes and emits `selected` (spec §5.9). */
+  /** @internal Runs the action, records Recent, closes and emits `selected` (spec §5.9). */
   async select(option: SpotlightOption, modifiers: { newTab?: boolean } = {}): Promise<void> {
     if (option.kind === 'retry' || option.item === null) {
       this.retry(option.sourceId);
       return;
     }
-    if (this.selecting) return;
-    this.selecting = true;
+    if (this.selecting !== null) return;
+    const token = {};
+    this.selecting = token;
+    const session = this.session;
     const item = option.item;
     const source: SpotlightSource = this.regs().find((reg) => reg.source.id === option.sourceId)?.source ?? {
       id: option.sourceId,
       search: () => [],
     };
-    try {
-      await this.runAction(item.action, modifiers.newTab === true, source);
-    } catch (error) {
-      this.report(error, source);
-      this.close();
+    const done = this.runAction(item.action, modifiers.newTab === true, source).then(
+      () => null,
+      (error: unknown) => ({ error }),
+    );
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const waited = new Promise<'waiting'>((resolve) => (timer = setTimeout(() => resolve('waiting'), RUN_WAIT_MS)));
+    const first = await Promise.race([done, waited]);
+    clearTimeout(timer);
+    if (this.selecting === token) this.selecting = null;
+
+    const finish = (outcome: { error: unknown } | null): void => {
+      if (outcome === null) this.remember(item, option.sourceId);
+      else this.report(outcome.error, source);
+      // Don't close a palette the user opened again after this select().
+      if (this.session === session) this.close();
+      if (outcome === null) this.selectedSubject.next(item);
+    };
+    if (first !== 'waiting') {
+      finish(first);
       return;
-    } finally {
-      this.selecting = false;
     }
-    this.remember(item, option.sourceId);
-    this.close();
-    this.selectedSubject.next(item);
+    if (this.session === session) this.close();
+    void done.then(finish);
   }
 
   private async runAction(action: SpotlightAction, newTab: boolean, source: SpotlightSource): Promise<void> {
@@ -445,7 +486,8 @@ export class SpotlightService {
       sources: this.regs(),
       input$: this.input$,
       retry$: this.retry$,
-      recentIds: () => new Set(this._recent().map((entry) => entry.id)),
+      recentIds: (sourceId) =>
+        new Set(this._recent().flatMap((entry) => (entry.sourceId === sourceId ? [entry.id] : []))),
       onError: (error, source) => this.report(error, source),
       learned: this.learnedGroups,
       placeholderLabel: (state) => (state === 'loading' ? this.texts.loading() : this.texts.error()),

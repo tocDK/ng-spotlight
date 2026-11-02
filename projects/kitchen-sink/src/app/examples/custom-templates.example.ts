@@ -9,7 +9,7 @@ import {
   SpotlightTrigger,
   staticSource,
   type SpotlightItem,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 
 export const customTemplatesProviders = [
   provideSpotlight({

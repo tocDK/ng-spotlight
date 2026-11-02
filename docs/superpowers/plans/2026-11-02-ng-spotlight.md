@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build and release-prep `@tocdk/ng-spotlight` 21.0.0: a keyboard-first command palette for Angular 21 with a headless core, a `/primeng` secondary entry point, a JSON Schema for the HTTP format, a GitHub Pages kitchen sink, and hardened CI/release/pages workflows.
+**Goal:** Build and release-prep `@tocdk-oss/ng-spotlight` 21.0.0: a keyboard-first command palette for Angular 21 with a headless core, a `/primeng` secondary entry point, a JSON Schema for the HTTP format, a GitHub Pages kitchen sink, and hardened CI/release/pages workflows.
 
 **Architecture:** A pure RxJS search engine (`engine.ts`) fans a query out to registered sources, ranks local results, and streams grouped state. `SpotlightService` (provided by `provideSpotlight`) owns state as signals, runs actions and keeps Recent items. `<spotlight-host>` owns the CDK overlay, focus, hotkeys and every ARIA attribute, and renders the visual parts (`input`, `chips`, `groupHeader`, `row`, `badge`) through components named by the `SPOTLIGHT_RENDERER` token. The PrimeNG adapter only swaps those part components.
 
@@ -18,8 +18,8 @@
 
 ## Global Constraints
 
-- Package `@tocdk/ng-spotlight` (MIT), repo `https://github.com/tocDK/ng-spotlight`.
-- Entry points: `@tocdk/ng-spotlight` (headless core; peers `@angular/core`, `@angular/common`, `@angular/router`, `@angular/cdk`) and `@tocdk/ng-spotlight/primeng` (PrimeNG renderer adapter; `primeng` is an optional peer). "Apps that don't use PrimeNG never resolve it."
+- Package `@tocdk-oss/ng-spotlight` (MIT), repo `https://github.com/tocDK/ng-spotlight`.
+- Entry points: `@tocdk-oss/ng-spotlight` (headless core; peers `@angular/core`, `@angular/common`, `@angular/router`, `@angular/cdk`) and `@tocdk-oss/ng-spotlight/primeng` (PrimeNG renderer adapter; `primeng` is an optional peer). "Apps that don't use PrimeNG never resolve it."
 - "Versions follow Angular majors": `21.x` supports Angular 21. First release: `21.0.0`.
 - Toolchain: Angular `^21.2.25`, @angular/cdk `^21.2.14`, @angular/build and @angular/cli `^21.2.29`, ng-packagr `^21.2.7`, primeng `^21.1.10`, TypeScript `~5.9.3`, Node 22, vitest `^4.1.11`.
 - "Size target: core at or under 15 kB gzipped." Measured by `scripts/check-size.mjs`: the core FESM bundle minified by esbuild with `@angular/*`, `rxjs` and `tslib` external, then gzipped, must be at most 15360 bytes.
@@ -149,7 +149,7 @@ README.md, CHANGELOG.md, CONTRIBUTING.md
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `VERSION: Version` (from `@angular/core`) exported from `@tocdk/ng-spotlight`; path aliases `@tocdk/ng-spotlight` → `projects/ng-spotlight/src/public-api.ts` and `@tocdk/ng-spotlight/primeng` → `projects/ng-spotlight/primeng/src/public-api.ts` in both `tsconfig.base.json` and `vitest.config.ts`; vitest projects `lib` and `demo`; npm scripts `test`, `test:lib`, `test:demo`, `test:coverage`, `lint`, `build:lib`, `build:demo`, `start`.
+- Produces: `VERSION: Version` (from `@angular/core`) exported from `@tocdk-oss/ng-spotlight`; path aliases `@tocdk-oss/ng-spotlight` → `projects/ng-spotlight/src/public-api.ts` and `@tocdk-oss/ng-spotlight/primeng` → `projects/ng-spotlight/primeng/src/public-api.ts` in both `tsconfig.base.json` and `vitest.config.ts`; vitest projects `lib` and `demo`; npm scripts `test`, `test:lib`, `test:demo`, `test:coverage`, `lint`, `build:lib`, `build:demo`, `start`.
 
 - [ ] **Step 1: Write the workspace config files**
 
@@ -161,7 +161,7 @@ README.md, CHANGELOG.md, CONTRIBUTING.md
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
-  "description": "Workspace for @tocdk/ng-spotlight and its kitchen sink.",
+  "description": "Workspace for @tocdk-oss/ng-spotlight and its kitchen sink.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tocDK/ng-spotlight.git"
@@ -315,8 +315,8 @@ README.md, CHANGELOG.md, CONTRIBUTING.md
     "module": "ES2022",
     "lib": ["ES2022", "dom", "dom.iterable"],
     "paths": {
-      "@tocdk/ng-spotlight": ["./projects/ng-spotlight/src/public-api.ts"],
-      "@tocdk/ng-spotlight/primeng": ["./projects/ng-spotlight/primeng/src/public-api.ts"]
+      "@tocdk-oss/ng-spotlight": ["./projects/ng-spotlight/src/public-api.ts"],
+      "@tocdk-oss/ng-spotlight/primeng": ["./projects/ng-spotlight/primeng/src/public-api.ts"]
     }
   },
   "angularCompilerOptions": {
@@ -363,10 +363,10 @@ export default defineConfig({
     // Vite does not read tsconfig "paths"; mirror them here. The more specific alias goes first.
     alias: [
       {
-        find: /^@tocdk\/ng-spotlight\/primeng$/,
+        find: /^@tocdk-oss\/ng-spotlight\/primeng$/,
         replacement: fromRoot('./projects/ng-spotlight/primeng/src/public-api.ts'),
       },
-      { find: /^@tocdk\/ng-spotlight$/, replacement: fromRoot('./projects/ng-spotlight/src/public-api.ts') },
+      { find: /^@tocdk-oss\/ng-spotlight$/, replacement: fromRoot('./projects/ng-spotlight/src/public-api.ts') },
     ],
   },
   test: {
@@ -538,7 +538,7 @@ projects/kitchen-sink/src/app/examples/sources.generated.ts
 
 ````json
 {
-  "name": "@tocdk/ng-spotlight",
+  "name": "@tocdk-oss/ng-spotlight",
   "version": "21.0.0",
   "description": "Keyboard-first spotlight / command palette for Angular: headless core plus a PrimeNG adapter.",
   "license": "MIT",
@@ -633,7 +633,7 @@ projects/kitchen-sink/src/app/examples/sources.generated.ts
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>@tocdk/ng-spotlight kitchen sink</title>
+    <title>@tocdk-oss/ng-spotlight kitchen sink</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
@@ -733,7 +733,7 @@ export const VERSION = new Version('21.0.0');
 `projects/ng-spotlight/src/public-api.ts`:
 
 ````ts
-// Public API for @tocdk/ng-spotlight
+// Public API for @tocdk-oss/ng-spotlight
 
 export { VERSION } from './lib/version';
 ````
@@ -746,8 +746,8 @@ Expected: PASS, `Test Files  1 passed (1)`.
 Run: `npm run lint`
 Expected: exits 0 with no errors.
 
-Run: `npm run build:lib && test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs && test -f dist/ng-spotlight/LICENSE && echo LIB_OK`
-Expected: ng-packagr reports "Built @tocdk/ng-spotlight" and the command prints `LIB_OK`. (README.md does not exist yet, so ng-packagr copies only LICENSE; Task 13 adds README.md.)
+Run: `npm run build:lib && test -f dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight.mjs && test -f dist/ng-spotlight/LICENSE && echo LIB_OK`
+Expected: ng-packagr reports "Built @tocdk-oss/ng-spotlight" and the command prints `LIB_OK`. (README.md does not exist yet, so ng-packagr copies only LICENSE; Task 13 adds README.md.)
 
 Run: `npm run build:demo && test -f dist/kitchen-sink/browser/index.html && grep -q 'base href="/ng-spotlight/"' dist/kitchen-sink/browser/index.html && echo DEMO_OK`
 Expected: prints `DEMO_OK`.
@@ -779,7 +779,7 @@ EOF
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces (all exported from `@tocdk/ng-spotlight` except where marked internal):
+- Produces (all exported from `@tocdk-oss/ng-spotlight` except where marked internal):
   - `type SpotlightBadgeTone = 'info' | 'success' | 'warn' | 'danger'`; `interface SpotlightBadge { label: string; tone?: SpotlightBadgeTone }`
   - `type SpotlightAction = { route: unknown[] | string } | { url: string; newTab?: boolean } | { run: () => void | Promise<void> }`
   - `interface SpotlightItem { id; title; subtitle?; icon?; group: string; keywords?; badges?; suggested?; data?: unknown; action: SpotlightAction; children?: never }`
@@ -792,7 +792,7 @@ EOF
   - `type SpotlightStoredAction`, `interface SpotlightRecentEntry { id; title; group; sourceId; subtitle?; icon?; badges?; action?: SpotlightStoredAction }`, `interface SpotlightRecentStorage { load(): Promise<SpotlightRecentEntry[]>; save(items: SpotlightRecentEntry[]): Promise<void> }`
   - `interface SpotlightConfig { hotkeys?; texts?: Partial<SpotlightTexts>; recent?: { max?; storage? }; http?: SpotlightHttpOptions; theme?: 'default' | 'none'; onError?: (error: unknown, source: SpotlightSource) => void; sources?: SpotlightSource[]; isolated?: boolean }`
   - Internal (`normalize.ts`): `interface NormalizedGroup { id: string; label: string; total?: number; items: SpotlightItem[] }`, `class SpotlightResultError extends Error`, `isSpotlightResponse(value: unknown): value is SpotlightResponse`, `isValidItem(value: unknown): value is SpotlightItem`, `normalizeResult(result: unknown, fallbackGroup: string): NormalizedGroup[]`
-  - Package export `@tocdk/ng-spotlight/schema/spotlight-response.schema.json`.
+  - Package export `@tocdk-oss/ng-spotlight/schema/spotlight-response.schema.json`.
 
 - [ ] **Step 1: Write the types**
 
@@ -1223,7 +1223,7 @@ Expected: FAIL with `ENOENT` for `spotlight-response.schema.json`.
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tocdk.github.io/ng-spotlight/schema/spotlight-response.schema.json",
   "title": "SpotlightResult",
-  "description": "Response format for @tocdk/ng-spotlight httpSource: a grouped SpotlightResponse or a flat SpotlightItem array (grouped by item.group).",
+  "description": "Response format for @tocdk-oss/ng-spotlight httpSource: a grouped SpotlightResponse or a flat SpotlightItem array (grouped by item.group).",
   "oneOf": [
     { "$ref": "#/$defs/SpotlightResponse" },
     { "type": "array", "items": { "$ref": "#/$defs/SpotlightItem" } }
@@ -1320,7 +1320,7 @@ In `projects/ng-spotlight/package.json`, add after `"sideEffects": false,`:
 Replace `projects/ng-spotlight/src/public-api.ts` with:
 
 ````ts
-// Public API for @tocdk/ng-spotlight
+// Public API for @tocdk-oss/ng-spotlight
 
 export { VERSION } from './lib/version';
 
@@ -5496,8 +5496,8 @@ EOF
 - Test: `projects/ng-spotlight/primeng/src/primeng.spec.ts`
 
 **Interfaces:**
-- Consumes (from `@tocdk/ng-spotlight`): `SPOTLIGHT_RENDERER`, `SpotlightRenderer`, `SpotlightInputContext`, `SpotlightChipContext`, `SpotlightGroupHeaderContext`, `SpotlightRowContext`, `SpotlightBadgeContext`, `SpotlightBadgeTone`; in tests `provideSpotlight`, `staticSource`, `SpotlightHost`, `SpotlightService` and `memoryRecent` (Task 7 helper).
-- Produces (exported from `@tocdk/ng-spotlight/primeng`):
+- Consumes (from `@tocdk-oss/ng-spotlight`): `SPOTLIGHT_RENDERER`, `SpotlightRenderer`, `SpotlightInputContext`, `SpotlightChipContext`, `SpotlightGroupHeaderContext`, `SpotlightRowContext`, `SpotlightBadgeContext`, `SpotlightBadgeTone`; in tests `provideSpotlight`, `staticSource`, `SpotlightHost`, `SpotlightService` and `memoryRecent` (Task 7 helper).
+- Produces (exported from `@tocdk-oss/ng-spotlight/primeng`):
   - `provideSpotlightPrimeNG(): EnvironmentProviders` (provides `SPOTLIGHT_RENDERER` = `SPOTLIGHT_PRIMENG_RENDERER`)
   - `SPOTLIGHT_PRIMENG_RENDERER: SpotlightRenderer` = `{ dialog: { panelClass: 'sp-primeng', backdropClass: 'sp-primeng-backdrop' }, input: SpotlightPrimeNgInput, chips: SpotlightPrimeNgChip, groupHeader: SpotlightPrimeNgGroupHeader, row: SpotlightPrimeNgRow, badge: SpotlightPrimeNgBadge }`
   - Part components `SpotlightPrimeNgInput` (`p-iconfield` + `p-inputicon` + `input[pInputText]`), `SpotlightPrimeNgChip` (`p-chip`, inside `aria-hidden` because the host's chip button already carries the name and PrimeNG puts `aria-label` on the chip host), `SpotlightPrimeNgGroupHeader` (`pi pi-spin pi-spinner`), `SpotlightPrimeNgRow` (`pi` icon classes), `SpotlightPrimeNgBadge` (`p-tag`)
@@ -5512,7 +5512,7 @@ EOF
 import { Component, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideSpotlight, SpotlightHost, SpotlightService, staticSource } from '@tocdk/ng-spotlight';
+import { provideSpotlight, SpotlightHost, SpotlightService, staticSource } from '@tocdk-oss/ng-spotlight';
 import axe from 'axe-core';
 import { providePrimeNG } from 'primeng/config';
 import { memoryRecent } from '../../src/lib/testing.spec-util';
@@ -5600,7 +5600,7 @@ function a11yTree(root: Element): string[] {
   return out;
 }
 
-describe('@tocdk/ng-spotlight/primeng', () => {
+describe('@tocdk-oss/ng-spotlight/primeng', () => {
   it('maps badge tones to p-tag severities', () => {
     expect(toneToSeverity('info')).toBe('info');
     expect(toneToSeverity('success')).toBe('success');
@@ -5684,7 +5684,7 @@ import type {
   SpotlightGroupHeaderContext,
   SpotlightInputContext,
   SpotlightRowContext,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { Chip } from 'primeng/chip';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
@@ -5841,7 +5841,7 @@ export class SpotlightPrimeNgRow {
 
 ````ts
 import { makeEnvironmentProviders, type EnvironmentProviders } from '@angular/core';
-import { SPOTLIGHT_RENDERER, type SpotlightRenderer } from '@tocdk/ng-spotlight';
+import { SPOTLIGHT_RENDERER, type SpotlightRenderer } from '@tocdk-oss/ng-spotlight';
 import {
   SpotlightPrimeNgBadge,
   SpotlightPrimeNgChip,
@@ -5868,7 +5868,7 @@ export function provideSpotlightPrimeNG(): EnvironmentProviders {
 `projects/ng-spotlight/primeng/src/public-api.ts`:
 
 ````ts
-// Public API for @tocdk/ng-spotlight/primeng
+// Public API for @tocdk-oss/ng-spotlight/primeng
 
 export { provideSpotlightPrimeNG, SPOTLIGHT_PRIMENG_RENDERER } from './provide-spotlight-primeng';
 export {
@@ -5890,7 +5890,7 @@ Expected: PASS, 5 tests. If "same accessibility tree" fails, the diff shows the 
 
 - [ ] **Step 5: Build and check the package layout**
 
-Run: `npm run build:lib && test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight-primeng.mjs && ! grep -q "class SpotlightService" dist/ng-spotlight/fesm2022/tocdk-ng-spotlight-primeng.mjs && ! grep -q "from 'primeng" dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs && node -e "const p=require('./dist/ng-spotlight/package.json'); if(!p.exports['./primeng']) process.exit(1); console.log('ENTRYPOINTS_OK')"`
+Run: `npm run build:lib && test -f dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight-primeng.mjs && ! grep -q "class SpotlightService" dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight-primeng.mjs && ! grep -q "from 'primeng" dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight.mjs && node -e "const p=require('./dist/ng-spotlight/package.json'); if(!p.exports['./primeng']) process.exit(1); console.log('ENTRYPOINTS_OK')"`
 Expected: prints `ENTRYPOINTS_OK` (the secondary bundle imports the core instead of copying it, and the core never imports PrimeNG).
 
 - [ ] **Step 6: Run the full lib suite with coverage, lint, commit**
@@ -5901,7 +5901,7 @@ Expected: PASS with thresholds met; lint exits 0.
 ```bash
 git add projects/ng-spotlight/primeng
 git commit -m "$(cat <<'EOF'
-feat(primeng): @tocdk/ng-spotlight/primeng renderer adapter
+feat(primeng): @tocdk-oss/ng-spotlight/primeng renderer adapter
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01KPPoJVjcRbL7ZMXrfPVNwo
@@ -5922,7 +5922,7 @@ EOF
 - Test: `projects/kitchen-sink/src/app/kitchen-sink.spec.ts`
 
 **Interfaces:**
-- Consumes: the whole public API of `@tocdk/ng-spotlight` and `@tocdk/ng-spotlight/primeng` (Tasks 2–10).
+- Consumes: the whole public API of `@tocdk-oss/ng-spotlight` and `@tocdk-oss/ng-spotlight/primeng` (Tasks 2–10).
 - Produces:
   - `interface PageSection { id: string; title: string; markdown: string }`, `interface PageExample { key: string; title: string }`, `interface PageContent { title: string; sections: PageSection[]; examples: PageExample[] }`
   - `interface ExampleDef { component: Type<unknown>; providers: Array<Provider | EnvironmentProviders> }`, `EXAMPLES: Record<string, ExampleDef>` (key = file name without `.example.ts`)
@@ -6062,7 +6062,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, spotlightRouteAudit } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, spotlightRouteAudit } from '@tocdk-oss/ng-spotlight';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 import { EXAMPLES } from './examples';
@@ -6341,7 +6341,7 @@ export class ThemeToggle {
 
 ````ts
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { localStorageRecent, provideSpotlight, routeSource, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, routeSource, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk-oss/ng-spotlight';
 
 const greetings = signal(0);
 
@@ -6392,7 +6392,7 @@ import {
   SpotlightHost,
   spotlightRouteAudit,
   SpotlightTrigger,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 
 @Component({ template: '' })
 class DemoPage {}
@@ -6466,7 +6466,7 @@ export const GETTING_STARTED_CONTENT: PageContent = {
       title: 'Install',
       markdown: `
 \`\`\`bash
-npm i @tocdk/ng-spotlight
+npm i @tocdk-oss/ng-spotlight
 \`\`\`
 
 Peer dependencies: \`@angular/core\`, \`@angular/common\`, \`@angular/router\`, \`@angular/cdk\` (21.x) and \`rxjs\`.
@@ -6631,7 +6631,7 @@ export const API_CONTENT: PageContent = {
     },
     {
       id: 'primeng',
-      title: '@tocdk/ng-spotlight/primeng',
+      title: '@tocdk-oss/ng-spotlight/primeng',
       markdown: `
 | Export | What it is |
 |---|---|
@@ -6696,7 +6696,7 @@ Replace `projects/kitchen-sink/src/app/app.ts` with:
 ````ts
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { NAV_PAGES } from './app.routes';
 import { ThemeToggle } from './shared/theme-toggle';
 
@@ -6741,7 +6741,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import Aura from '@primeuix/themes/aura';
-import { localStorageRecent, provideSpotlight, routeSource, staticSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, routeSource, staticSource } from '@tocdk-oss/ng-spotlight';
 import { providePrimeNG } from 'primeng/config';
 import { App } from './app/app';
 import { routes } from './app/app.routes';
@@ -6772,7 +6772,7 @@ bootstrapApplication(App, {
               title: 'npm package',
               icon: 'pi pi-box',
               keywords: ['install'],
-              action: { url: 'https://www.npmjs.com/package/@tocdk/ng-spotlight', newTab: true },
+              action: { url: 'https://www.npmjs.com/package/@tocdk-oss/ng-spotlight', newTab: true },
             },
           ],
         }),
@@ -6968,7 +6968,7 @@ Expected: FAIL, `./examples/byo-lingui.example` cannot be resolved.
 `projects/kitchen-sink/src/app/shared/demo-data.ts`:
 
 ````ts
-import { staticSource, type SpotlightSource } from '@tocdk/ng-spotlight';
+import { staticSource, type SpotlightSource } from '@tocdk-oss/ng-spotlight';
 
 /** The same small data set for every theme and template demo. */
 export function demoSources(): SpotlightSource[] {
@@ -7005,7 +7005,7 @@ export function demoSources(): SpotlightSource[] {
 
 ````ts
 import { HttpErrorResponse, HttpResponse, type HttpInterceptorFn } from '@angular/common/http';
-import type { SpotlightGroup, SpotlightItem, SpotlightResponse } from '@tocdk/ng-spotlight';
+import type { SpotlightGroup, SpotlightItem, SpotlightResponse } from '@tocdk-oss/ng-spotlight';
 import { delay, of, switchMap, throwError, timer } from 'rxjs';
 
 const CUSTOMERS = ['Acme A/S', 'Nordlys ApS', 'Fjord Media', 'Bølge Consulting', 'Havn & Co', 'Skov Retail', 'Acme Nordic'];
@@ -7091,7 +7091,7 @@ export const mockBackendInterceptor: HttpInterceptorFn = (req, next) => {
 ````ts
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { httpSource, localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { httpSource, localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { mockBackendInterceptor } from '../shared/mock-backend';
 
 interface LegacyResponse {
@@ -7163,7 +7163,7 @@ import {
   SpotlightTrigger,
   staticSource,
   type SpotlightItem,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 
 export const customTemplatesProviders = [
   provideSpotlight({
@@ -7245,7 +7245,7 @@ export class CustomTemplatesExample {
 
 ````ts
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // theme: 'default' is the default: one CSS-variable stylesheet with a dark variant (follows .sp-dark here).
@@ -7276,7 +7276,7 @@ import {
   SpotlightHost,
   SpotlightTrigger,
   type SpotlightRenderer,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // theme: 'none' ships no CSS. A partial renderer adds a class to the pane so the app can style it.
@@ -7312,8 +7312,8 @@ export class ThemeNoneExample {}
 
 ````ts
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 import { demoSources } from '../shared/demo-data';
 
 // PrimeNG components (p-iconfield, p-chip, p-tag, pi icons) with colours from the app's PrimeNG preset.
@@ -7346,7 +7346,7 @@ import {
   SpotlightHost,
   SpotlightTrigger,
   type SpotlightRenderer,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // Override the CSS variables. Globally: :root { --sp-accent: … }. Here: on one palette's pane class.
@@ -7376,7 +7376,7 @@ export class ThemeVariablesExample {}
 
 ````ts
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 export const hotkeysPrefixesProviders = [
@@ -7432,7 +7432,7 @@ export class HotkeysPrefixesExample {}
 ````ts
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { map, scan } from 'rxjs';
 import { demoSources } from '../shared/demo-data';
 
@@ -7472,7 +7472,7 @@ import {
   SpotlightTrigger,
   type SpotlightItem,
   type SpotlightSource,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 
 const COLORS = ['crimson', 'coral', 'gold', 'olive', 'teal', 'navy', 'indigo', 'orchid', 'salmon', 'tomato'];
 const picked = signal<string | null>(null);
@@ -7527,7 +7527,7 @@ export class ByoSourceExample {
 ````ts
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { LinguiService, provideLingui, type LinguiCatalog } from '@tocdk/lingui-angular';
-import { localStorageRecent, provideSpotlight, SpotlightFooterTemplate, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightFooterTemplate, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // Explicit ids keep the catalogs readable; a real app extracts them with `lingui extract`.
@@ -7620,7 +7620,7 @@ import {
   SpotlightTrigger,
   type SpotlightRecentEntry,
   type SpotlightRecentStorage,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 /** Recent items in sessionStorage instead of localStorage: forgotten when the tab closes. */
@@ -7672,7 +7672,7 @@ import {
   type SpotlightBadgeContext,
   type SpotlightRenderer,
   type SpotlightRowContext,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 /** A row part: markup only. The host already provides role="option", ids and aria-selected. */
@@ -7785,7 +7785,7 @@ It expects a \`SpotlightResponse\`; a flat \`SpotlightItem[]\` is grouped by \`i
 ] }] }
 \`\`\`
 
-Backends in any language can validate against \`@tocdk/ng-spotlight/schema/spotlight-response.schema.json\`.
+Backends in any language can validate against \`@tocdk-oss/ng-spotlight/schema/spotlight-response.schema.json\`.
 Defaults: \`minLength\` 2, \`debounceMs\` 150, \`timeoutMs\` 5000. A new keystroke cancels the request in flight.
 The source uses \`HttpClient\`, so the app's interceptors (auth, tenant) apply; call \`provideHttpClient()\`.
       `,
@@ -7871,7 +7871,7 @@ class from a partial \`SpotlightRenderer\` (\`{ dialog: { panelClass } }\` via \
       title: 'PrimeNG',
       markdown: `
 \`\`\`ts
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 providers: [providePrimeNG({ theme: { preset: Aura } }), provideSpotlight({ … }), provideSpotlightPrimeNG()]
 \`\`\`
 
@@ -8115,10 +8115,10 @@ Expected: prints `NO_README`.
 `README.md`:
 
 `````markdown
-# @tocdk/ng-spotlight
+# @tocdk-oss/ng-spotlight
 
 [![CI](https://github.com/tocDK/ng-spotlight/actions/workflows/ci.yml/badge.svg)](https://github.com/tocDK/ng-spotlight/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@tocdk/ng-spotlight.svg)](https://www.npmjs.com/package/@tocdk/ng-spotlight)
+[![npm](https://img.shields.io/npm/v/@tocdk-oss/ng-spotlight.svg)](https://www.npmjs.com/package/@tocdk-oss/ng-spotlight)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Angular 21](https://img.shields.io/badge/angular-21-dd0031.svg)](https://angular.dev/)
 
@@ -8130,7 +8130,7 @@ page, a record or a command. Headless core, a PrimeNG adapter, WAI-ARIA combobox
 ## Install
 
 ```bash
-npm i @tocdk/ng-spotlight
+npm i @tocdk-oss/ng-spotlight
 ```
 
 Peer dependencies: `@angular/core`, `@angular/common`, `@angular/router`, `@angular/cdk` and `rxjs`. Versions follow
@@ -8140,7 +8140,7 @@ Angular majors: `21.x` supports Angular 21, `22.x` will support Angular 22. For 
 
 ```ts
 // app.config.ts
-import { provideSpotlight, routeSource } from '@tocdk/ng-spotlight';
+import { provideSpotlight, routeSource } from '@tocdk-oss/ng-spotlight';
 
 export const appConfig = {
   providers: [provideRouter(routes), provideSpotlight({ sources: [routeSource()] })],
@@ -8178,7 +8178,7 @@ provideSpotlight({
 - `httpSource({ url })` sends `GET {url}?q={query}` (plus `chip={groupId}` when a chip is active) and expects
   `{ groups: [{ id, label, total?, items }] }` or a flat item array. Results keep the server's order. Override the
   request and response globally (`provideSpotlight({ http: { request, map } })`) or per source
-  (`httpSource({ url, request, map })`). The JSON Schema ships as `@tocdk/ng-spotlight/schema/spotlight-response.schema.json`.
+  (`httpSource({ url, request, map })`). The JSON Schema ships as `@tocdk-oss/ng-spotlight/schema/spotlight-response.schema.json`.
 - Any object implementing `SpotlightSource` is a source: `search(query, ctx)` may return items, a promise or an
   Observable, and should stop when `ctx.signal` aborts.
 
@@ -8189,7 +8189,7 @@ Call `provideSpotlight()` again in a lazy route's `providers` to add sources for
 ## CI check for unlabelled routes
 
 ```ts
-import { spotlightRouteAudit } from '@tocdk/ng-spotlight';
+import { spotlightRouteAudit } from '@tocdk-oss/ng-spotlight';
 
 it('labels every admin route', () => {
   expect(spotlightRouteAudit(adminRoutes)).toEqual([]);
@@ -8214,7 +8214,7 @@ The default theme uses CSS variables only (`--sp-bg`, `--sp-fg`, `--sp-muted`, `
 `theme: 'none'` ships no CSS.
 
 ```ts
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 
 providers: [providePrimeNG({ theme: { preset: Aura } }), provideSpotlight({ … }), provideSpotlightPrimeNG()];
 ```
@@ -8247,7 +8247,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Changes are listed in [CHANGELOG.md](CHA
 `````markdown
 # Changelog
 
-All notable changes to `@tocdk/ng-spotlight` are documented here.
+All notable changes to `@tocdk-oss/ng-spotlight` are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: the major follows Angular's major;
 minor and patch follow [Semantic Versioning](https://semver.org/).
@@ -8262,7 +8262,7 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
   per-source `request`/`map` overrides) and the `spotlightRouteAudit` helper.
 - `schema/spotlight-response.schema.json` for the HTTP response format.
 - Default CSS-variable theme with a dark variant; `theme: 'none'`.
-- `@tocdk/ng-spotlight/primeng`: `provideSpotlightPrimeNG()` renderer adapter.
+- `@tocdk-oss/ng-spotlight/primeng`: `provideSpotlightPrimeNG()` renderer adapter.
 - Kitchen sink on GitHub Pages: <https://tocdk.github.io/ng-spotlight/>.
 
 [Unreleased]: https://github.com/tocDK/ng-spotlight/commits/main
@@ -8271,7 +8271,7 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 `CONTRIBUTING.md`:
 
 `````markdown
-# Contributing to @tocdk/ng-spotlight
+# Contributing to @tocdk-oss/ng-spotlight
 
 PRs are welcome. Every change lands through a pull request against `main`; branch names follow
 `toc/<topic>-<short-description>`. Use [Conventional Commits](https://www.conventionalcommits.org/) prefixes
@@ -8557,7 +8557,7 @@ import { gzipSync } from 'node:zlib';
 import { build } from 'esbuild';
 
 const LIMIT = 15 * 1024;
-const entry = 'dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs';
+const entry = 'dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight.mjs';
 
 if (!existsSync(entry)) {
   console.error(`[check-size] ${entry} not found; run npm run build:lib first`);
@@ -8581,7 +8581,7 @@ Run: `npm run test:tooling`
 Expected: PASS, 5 tests.
 
 Run: `npm run build:lib >/dev/null && npm run check:size`
-Expected: `[check-size] core: N kB gzipped (limit 15 kB)` with N ≤ 15 and exit 0. If N > 15, do not loosen the limit or drop features: report the number and the three largest contributors (`npx esbuild dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs --bundle --minify --format=esm --external:@angular/* --external:rxjs --external:tslib --analyze --outfile=/dev/null`) to the operator.
+Expected: `[check-size] core: N kB gzipped (limit 15 kB)` with N ≤ 15 and exit 0. If N > 15, do not loosen the limit or drop features: report the number and the three largest contributors (`npx esbuild dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight.mjs --bundle --minify --format=esm --external:@angular/* --external:rxjs --external:tslib --analyze --outfile=/dev/null`) to the operator.
 
 Run: `npm run check:workflows`
 Expected: FAIL with `.github/workflows` missing (ENOENT) or `no workflow files`: the workflows come next.
@@ -8660,8 +8660,8 @@ jobs:
       - run: npm run check:size
       - name: Verify the package layout
         run: |
-          test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs
-          test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight-primeng.mjs
+          test -f dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight.mjs
+          test -f dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight-primeng.mjs
           test -f dist/ng-spotlight/schema/spotlight-response.schema.json
           test -f dist/ng-spotlight/README.md
           test -f dist/ng-spotlight/LICENSE
@@ -8795,7 +8795,7 @@ jobs:
 Run: `npm run check:workflows`
 Expected: `[check-workflows] 3 file(s), 0 problem(s)`.
 
-Run: `CI=true npm ci && node scripts/generate-example-sources.mjs && npm run lint && npm run test:coverage && npm run build:lib && npm run check:size && test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight-primeng.mjs && test -f dist/ng-spotlight/schema/spotlight-response.schema.json && test -f dist/ng-spotlight/README.md && npm run build:demo && npm run check:docs && echo ALL_CI_STEPS_OK`
+Run: `CI=true npm ci && node scripts/generate-example-sources.mjs && npm run lint && npm run test:coverage && npm run build:lib && npm run check:size && test -f dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight-primeng.mjs && test -f dist/ng-spotlight/schema/spotlight-response.schema.json && test -f dist/ng-spotlight/README.md && npm run build:demo && npm run check:docs && echo ALL_CI_STEPS_OK`
 Expected: prints `ALL_CI_STEPS_OK`. (This mirrors the ci.yml jobs, including `npm ci` with `CI=true` so the lingui-angular git dependency installs from its prebuilt `dist/` as on GitHub.)
 
 - [ ] **Step 6: Prepare 21.0.0**
@@ -8819,8 +8819,8 @@ Replace the `## [Unreleased]` heading and its link in `CHANGELOG.md` so the top 
 
 The versions are already `21.0.0` (`projects/ng-spotlight/package.json`, `src/lib/version.ts`, kept equal by `version.spec.ts`).
 
-Run: `npm run build:lib >/dev/null && npm pack ./dist/ng-spotlight --dry-run --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const [p]=JSON.parse(s); const f=p.files.map(x=>x.path); const need=['package.json','README.md','LICENSE','schema/spotlight-response.schema.json','fesm2022/tocdk-ng-spotlight.mjs','fesm2022/tocdk-ng-spotlight-primeng.mjs']; const miss=need.filter(n=>!f.includes(n)); if(miss.length){console.error('missing',miss);process.exit(1)} if(f.some(x=>x.includes('.spec')||x.includes('kitchen-sink'))){console.error('test or demo files in package');process.exit(1)} console.log(p.name+'@'+p.version, p.files.length+' files, '+p.size+' bytes packed'); console.log('PACK_OK')})"`
-Expected: prints `@tocdk/ng-spotlight@21.0.0 …` and `PACK_OK`. This is a dry run: nothing is published. Do not run `npm publish` and do not push a tag; the operator does both (CONTRIBUTING.md "Releasing").
+Run: `npm run build:lib >/dev/null && npm pack ./dist/ng-spotlight --dry-run --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const [p]=JSON.parse(s); const f=p.files.map(x=>x.path); const need=['package.json','README.md','LICENSE','schema/spotlight-response.schema.json','fesm2022/tocdk-oss-ng-spotlight.mjs','fesm2022/tocdk-oss-ng-spotlight-primeng.mjs']; const miss=need.filter(n=>!f.includes(n)); if(miss.length){console.error('missing',miss);process.exit(1)} if(f.some(x=>x.includes('.spec')||x.includes('kitchen-sink'))){console.error('test or demo files in package');process.exit(1)} console.log(p.name+'@'+p.version, p.files.length+' files, '+p.size+' bytes packed'); console.log('PACK_OK')})"`
+Expected: prints `@tocdk-oss/ng-spotlight@21.0.0 …` and `PACK_OK`. This is a dry run: nothing is published. Do not run `npm publish` and do not push a tag; the operator does both (CONTRIBUTING.md "Releasing").
 
 - [ ] **Step 7: Commit**
 
@@ -8839,7 +8839,7 @@ EOF
 
 ```bash
 git push -u origin toc/ng-spotlight-v21
-gh pr create --base main --title "feat: @tocdk/ng-spotlight 21.0.0 (core, /primeng, kitchen sink, workflows)" --body "$(cat <<'EOF'
+gh pr create --base main --title "feat: @tocdk-oss/ng-spotlight 21.0.0 (core, /primeng, kitchen sink, workflows)" --body "$(cat <<'EOF'
 Implements docs/superpowers/plans/2026-11-02-ng-spotlight.md (spec: docs/superpowers/specs/2026-11-02-ng-spotlight-design.md).
 
 - Headless core, `/primeng` adapter, JSON Schema, kitchen sink, hardened workflows.

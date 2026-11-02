@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger, staticSource } from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 export const hotkeysPrefixesProviders = [

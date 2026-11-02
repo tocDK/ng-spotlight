@@ -5,7 +5,7 @@ import {
   SpotlightTrigger,
   type SpotlightRecentEntry,
   type SpotlightRecentStorage,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 /** Recent items in sessionStorage instead of localStorage: forgotten when the tab closes. */

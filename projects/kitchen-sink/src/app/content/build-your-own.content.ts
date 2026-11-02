@@ -18,7 +18,7 @@ Observable. Stop work when \`ctx.signal\` aborts: the next keystroke has replace
       markdown: `
 Every text (\`SpotlightTexts\`) can be a string, a \`Signal<string>\` or an \`Observable<string>\`, so an open palette
 switches language live. The library has no i18n dependency; pass \`provideSpotlight(() => …)\` to build the texts
-with \`inject(LinguiService).t$(…)\`. Defaults: \`DEFAULT_SPOTLIGHT_TEXTS\`.
+with \`inject(LinguiService).t$(…)\`. Keys you leave out keep their English defaults.
       `,
     },
     {

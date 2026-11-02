@@ -17,6 +17,7 @@ export interface SpotlightEmptyTemplateContext {
 @Directive({ selector: '[spotlightItem]' })
 export class SpotlightItemTemplate {
   readonly spotlightItem = input('');
+  /** @internal */
   readonly template = inject<TemplateRef<SpotlightItemTemplateContext>>(TemplateRef);
 
   static ngTemplateContextGuard(_dir: SpotlightItemTemplate, _ctx: unknown): _ctx is SpotlightItemTemplateContext {
@@ -27,6 +28,7 @@ export class SpotlightItemTemplate {
 /** `<ng-template spotlightEmpty let-query>`: shown when a non-empty query has no results. */
 @Directive({ selector: '[spotlightEmpty]' })
 export class SpotlightEmptyTemplate {
+  /** @internal */
   readonly template = inject<TemplateRef<SpotlightEmptyTemplateContext>>(TemplateRef);
 
   static ngTemplateContextGuard(_dir: SpotlightEmptyTemplate, _ctx: unknown): _ctx is SpotlightEmptyTemplateContext {
@@ -37,6 +39,7 @@ export class SpotlightEmptyTemplate {
 /** `<ng-template spotlightFooter>`: replaces the default key hints. */
 @Directive({ selector: '[spotlightFooter]' })
 export class SpotlightFooterTemplate {
+  /** @internal */
   readonly template = inject<TemplateRef<void>>(TemplateRef);
 }
 
@@ -49,6 +52,7 @@ export class SpotlightTrigger {
   private readonly svc = inject(SpotlightService);
   readonly spotlightTrigger = input('');
 
+  /** @internal */
   protected open(): void {
     this.svc.open(this.spotlightTrigger() || undefined);
   }

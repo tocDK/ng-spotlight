@@ -35,6 +35,7 @@ import type {
 export class SpotlightDefaultInput {
   readonly ctx = input.required<SpotlightInputContext>();
 
+  /** @internal */
   protected onInput(event: Event): void {
     this.ctx().onInput((event.target as HTMLInputElement).value);
   }
@@ -116,6 +117,7 @@ export class SpotlightDefaultBadge {
 export class SpotlightDefaultRow {
   readonly ctx = input.required<SpotlightRowContext>();
 
+  /** @internal */
   protected isImage(icon: string): boolean {
     return /^(https?:|data:image\/|\/|\.)/.test(icon);
   }
