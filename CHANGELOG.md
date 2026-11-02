@@ -23,6 +23,25 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 - Default CSS-variable theme with a dark variant; `theme: 'none'`.
 - `@tocdk/ng-spotlight/primeng`: `provideSpotlightPrimeNG()` renderer adapter.
 - Kitchen sink on GitHub Pages: <https://tocdk.github.io/ng-spotlight/>.
+- Several palettes on one page: one hotkey press reaches exactly one of them (the open one, else the one opened most
+  recently, else the `<spotlight-host>` created first).
+- The public API is snapshotted in `api/` and checked in CI (`npm run check:api`).
+
+### Changed (since the review of the release candidate)
+- `SpotlightService` publishes only `open(query?)`, `close()`, `isOpen` and `selected`; its internal state is stripped
+  from the `.d.ts`. `VERSION`, `DEFAULT_SPOTLIGHT_TEXTS`, `SpotlightGroupState`, `SpotlightOption`, `SpotlightChip`,
+  and from `/primeng` `toneToSeverity`, `SpotlightPrimeTagSeverity` and `SPOTLIGHT_PRIMENG_CSS` are no longer exported.
+- A `run()` action is awaited for at most 5 seconds before the palette closes; closing the palette also releases it.
+  A late result still records Recent and emits `selected`.
+
+### Security
+- `url` actions: protocol-relative URLs (`//host`, `\\host`, `/\host`, with any tab, newline or leading control
+  characters) are blocked; only path-relative URLs count as relative.
+
+### Fixed
+- Recent entries whose route has matrix params or outlets (plain JSON objects) survive a reload; a route that cannot
+  be stored as JSON is kept by id and resolved through its source.
+- The Recent ranking boost is keyed on source and item id, so a same-id item in another source is not boosted.
 
 [Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.0.0...HEAD
 [21.0.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.0

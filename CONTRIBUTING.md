@@ -19,10 +19,11 @@ npm install
 | `npm start` | Kitchen sink at http://localhost:4200 |
 | `npm test` | All vitest projects (lib, demo, tooling) |
 | `npm run test:lib` / `npm run test:demo` | One project |
-| `npm run test:coverage` | With coverage thresholds (≥ 90 % lines/functions/statements, ≥ 85 % branches) |
+| `npm run test:coverage` | With coverage thresholds (statements 98 %, branches 95 %, functions 98 %, lines 99 %; the same bar for `/primeng` on its own) |
 | `npm run lint` | ESLint |
 | `npm run build:lib` | ng-packagr → `dist/ng-spotlight/` (core + `/primeng`) |
 | `npm run check:size` | Core bundle ≤ 15 kB gzipped (run after `build:lib`) |
+| `npm run check:api` | The built `.d.ts` of `.` and `./primeng` matches the snapshots in `api/` (run after `build:lib`; `-- --update` rewrites them) |
 | `npm run build:demo` | Kitchen sink with the GitHub Pages base href |
 | `npm run check:docs` | Every public export is documented in a kitchen-sink content module |
 | `npm run check:workflows` | Workflow hygiene (pinned SHAs, no persisted credentials, permissions, no `${{ }}` in `run:`) |
@@ -32,7 +33,9 @@ npm install
 1. Write the failing test first (vitest, jsdom; every TestBed adds `provideZonelessChangeDetection()`).
 2. Implement it. Keep ARIA in the host; renderer parts only render markup.
 3. Add or update a kitchen-sink example (`projects/kitchen-sink/src/app/examples/<key>.example.ts`) and its content page.
-4. `npm test`, `npm run lint` and `npm run check:docs` must pass.
+4. `npm run test:coverage`, `npm run lint` and `npm run check:docs` must pass. If the public API changes on purpose,
+   run `npm run build:lib && npm run check:api -- --update` and commit `api/`; internal members get an `@internal`
+   JSDoc tag so they stay out of the published `.d.ts`.
 5. Add a CHANGELOG entry under `[Unreleased]`.
 
 ## Workflow rules
@@ -60,7 +63,7 @@ One-time setup (done 2026-11-02 unless marked):
 3. GitHub Pages with source "GitHub Actions" (https://tocdk.github.io/ng-spotlight/): done.
 
 Each release:
-1. Bump `projects/ng-spotlight/package.json` and `projects/ng-spotlight/src/lib/version.ts`, move the
+1. Bump `projects/ng-spotlight/package.json`, move the
    `[Unreleased]` CHANGELOG entries under the new version, merge to `main`.
 2. `git tag v<version> && git push origin v<version>`.
 3. Approve the `npm` environment in the release run. The `build` job (read-only) checks the tag against the package
