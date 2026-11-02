@@ -1,9 +1,10 @@
 import { createEnvironmentInjector, EnvironmentInjector, inject, InjectionToken, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { firstValueFrom, throwError } from 'rxjs';
+import { firstValueFrom, Subject, throwError } from 'rxjs';
 import { provideSpotlight } from './provide-spotlight';
 import { staticSource } from './sources/static-source';
+import { SPOTLIGHT_HTTP_DEFAULTS } from './tokens';
 import { SpotlightService, type SpotlightOption } from './spotlight.service';
 import { flush, memoryRecent } from './testing.spec-util';
 import type { SpotlightConfig, SpotlightRecentEntry, SpotlightRecentStorage, SpotlightSource } from './types';
@@ -289,6 +290,81 @@ describe('SpotlightService', () => {
     expect(titles(svc)).toContain('Users');
     child.destroy();
     expect(titles(svc)).not.toContain('Users');
+  });
+
+  it('forgets resolved run() items of a destroyed child source', async () => {
+    const storage = memoryRecent([{ id: 'ping', title: 'Ping', group: 'Admin', sourceId: 'admin-src' }]);
+    const { svc } = setup({ recent: { storage } });
+    const child = createEnvironmentInjector(
+      [provideSpotlight({ sources: [staticSource({ id: 'admin-src', group: 'Admin', items: [{ id: 'ping', title: 'Ping', action: { run: () => undefined } }] })] })],
+      TestBed.inject(EnvironmentInjector),
+    );
+    svc.open();
+    await flush();
+    expect(svc.groups()[0].items.map((i) => i.title)).toEqual(['Ping']);
+    child.destroy();
+    expect(svc.groups().map((g) => g.id)).not.toContain('__recent');
+  });
+
+  it('never exposes the previous query\'s rows while the next query loads', async () => {
+    const pending = new Subject<never[]>();
+    const slow: SpotlightSource = {
+      id: 'slow',
+      group: 'Slow',
+      search: (q) => (q === 'alpha' ? [{ id: 'a1', title: 'Alpha one', group: 'Slow', action: { run: () => void ran.push('a1') } }] : pending),
+    };
+    const { svc } = setup({ sources: [slow] });
+    svc.open();
+    svc.setQuery('alpha');
+    await flush();
+    expect(titles(svc)).toContain('Alpha one');
+    svc.setQuery('beta');
+    expect(svc.loading()).toBe(true);
+    expect(titles(svc)).not.toContain('Alpha one');
+    expect(svc.options().filter((o) => o.sourceId === 'slow')).toEqual([]);
+    expect(svc.announcement()).toBe(svc.texts.resultsAnnouncement(svc.options().length));
+    const active = svc.activeOption();
+    if (active) await svc.select(active);
+    expect(ran).toEqual([]);
+  });
+
+  it('keeps same-id Recent entries from different sources distinct', async () => {
+    const storage = memoryRecent([
+      { id: 'same', title: 'First', group: 'A', sourceId: 'src-a', action: { route: '/a' } },
+      { id: 'same', title: 'Second', group: 'B', sourceId: 'src-b', action: { route: '/b' } },
+    ]);
+    const { svc } = setup({ recent: { storage } });
+    svc.open();
+    await flush();
+    const recent = svc.options().filter((o) => o.groupKey === '__recent');
+    expect(recent.map((o) => o.key)).toEqual(['__recent::src-a::same', '__recent::src-b::same']);
+    expect(svc.activeOption()?.item?.title).toBe('First');
+    svc.moveActive(1);
+    expect(svc.activeOption()?.item?.title).toBe('Second');
+  });
+
+  it('does not query minLength sources just to resolve Recent run() entries', async () => {
+    const calls: string[] = [];
+    const remote: SpotlightSource = { id: 'remote', group: 'Remote', minLength: 2, search: (q) => (calls.push(q), []) };
+    const storage = memoryRecent([{ id: 'r', title: 'R', group: 'Remote', sourceId: 'remote' }]);
+    const { svc } = setup({ sources: [remote], recent: { storage } });
+    svc.open();
+    await flush();
+    expect(calls).toEqual([]);
+  });
+
+  it('provides http defaults per injector, a child overriding its parent', () => {
+    const mapParent = () => [];
+    const mapChild = () => [];
+    setup({ http: { map: mapParent } });
+    const parent = TestBed.inject(EnvironmentInjector);
+    expect(parent.get(SPOTLIGHT_HTTP_DEFAULTS)).toEqual({ map: mapParent });
+    const child = createEnvironmentInjector([provideSpotlight({ http: { map: mapChild } })], parent);
+    expect(child.get(SPOTLIGHT_HTTP_DEFAULTS)).toEqual({ map: mapChild });
+    const plain = createEnvironmentInjector([provideSpotlight()], parent);
+    expect(plain.get(SPOTLIGHT_HTTP_DEFAULTS)).toEqual({ map: mapParent });
+    plain.destroy();
+    child.destroy();
   });
 
   it('creates a separate instance when isolated', () => {

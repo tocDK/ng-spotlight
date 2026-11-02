@@ -162,13 +162,16 @@ export class SpotlightService {
         });
         continue;
       }
+      // A loading group still shows the previous query's rows; they must not be selectable.
+      if (group.loading) continue;
       group.items.forEach((item, index) => {
+        const sourceId = group.key === RECENT_GROUP_ID ? recent[index].sourceId : group.sourceId;
         out.push({
-          key: `${group.key}::${item.id}`,
+          key: group.key === RECENT_GROUP_ID ? `${RECENT_GROUP_ID}::${sourceId}::${item.id}` : `${group.key}::${item.id}`,
           domId: `${this.idPrefix}-o${out.length}`,
           kind: 'item',
           item,
-          sourceId: group.key === RECENT_GROUP_ID ? recent[index].sourceId : group.sourceId,
+          sourceId,
           groupKey: group.key,
         });
       });
@@ -235,6 +238,16 @@ export class SpotlightService {
     this.regs.update((regs) => [...regs, ...added]);
     injector.get(DestroyRef).onDestroy(() => {
       this.regs.update((regs) => regs.filter((reg) => !added.includes(reg)));
+      const removed = new Set(added.map((reg) => reg.source.id));
+      const stillRegistered = new Set(this.regs().map((reg) => reg.source.id));
+      this._resolvedRuns.update((runs) => {
+        const next = new Map(runs);
+        for (const key of runs.keys()) {
+          const sourceId = key.slice(0, key.indexOf('::'));
+          if (removed.has(sourceId) && !stillRegistered.has(sourceId)) next.delete(key);
+        }
+        return next;
+      });
       this.restartEngine();
     });
     this.restartEngine();
@@ -387,7 +400,8 @@ export class SpotlightService {
     const pending = entries.filter((e) => e.action === undefined && !this._resolvedRuns().has(`${e.sourceId}::${e.id}`));
     for (const sourceId of new Set(pending.map((e) => e.sourceId))) {
       const reg = this.regs().find((r) => r.source.id === sourceId);
-      if (!reg) continue;
+      // Sources that need a query would be hit with an empty one just to open the palette.
+      if (!reg || (reg.source.minLength ?? 0) > 0) continue;
       try {
         const result = await firstValueFrom(
           toObservableResult(
