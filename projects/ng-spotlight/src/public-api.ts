@@ -34,3 +34,6 @@ export {
 } from './lib/sources/route-audit';
 export { httpSource, type HttpSourceOptions } from './lib/sources/http-source';
 export type { SpotlightGroupState } from './lib/engine';
+
+export { provideSpotlight } from './lib/provide-spotlight';
+export { SpotlightService, type SpotlightChip, type SpotlightOption } from './lib/spotlight.service';
