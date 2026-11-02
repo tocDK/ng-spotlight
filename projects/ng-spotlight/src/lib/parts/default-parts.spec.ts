@@ -97,7 +97,14 @@ describe('default parts', () => {
     expect(el.querySelector('.sp-group-label')!.textContent).toBe('Customers');
     expect(el.querySelector('.sp-group-total')!.textContent).toBe('42');
     expect(el.querySelector('.sp-spinner')!.getAttribute('aria-hidden')).toBe('true');
-    expect(el.textContent).toContain('Loading…');
+    // Accessible name with separators, not "Customers42Loading…".
+    expect(el.textContent.replace(/\s+/g, ' ').replace(/ ,/g, ',').trim()).toBe('Customers, 42, Loading…');
+  });
+
+  it('group header: skips the hidden loading text when it is empty', async () => {
+    const el = await render(SpotlightDefaultGroupHeader, { label: 'Loading…', total: undefined, loading: true, loadingText: '' });
+    expect(el.querySelector('.sp-spinner')).not.toBeNull();
+    expect(el.textContent.trim()).toBe('Loading…');
   });
 
   it('chip: marks the active chip', async () => {

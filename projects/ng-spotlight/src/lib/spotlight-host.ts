@@ -75,7 +75,7 @@ const PHONE_QUERY = '(max-width: 600px)';
                 <ng-container
                   *ngComponentOutlet="
                     parts.groupHeader;
-                    inputs: { ctx: { label: group.label, total: group.total, loading: group.loading, loadingText: texts.loading() } }
+                    inputs: { ctx: { label: group.label, total: group.total, loading: group.loading, loadingText: loadingTextFor(group.label) } }
                   "
                 />
               </div>
@@ -191,7 +191,7 @@ export class SpotlightHost {
     value: this.svc.query(),
     placeholder: this.texts.placeholder(),
     label: this.texts.placeholder(),
-    expanded: this.svc.options().length > 0,
+    expanded: this.svc.options().length > 0 || this.svc.loading(),
     controls: this.ids.listbox,
     activeDescendant: this.activeId(),
     onInput: this.handleInput,
@@ -216,6 +216,12 @@ export class SpotlightHost {
 
   protected get texts() {
     return this.svc.texts;
+  }
+
+  /** A placeholder header already reads "Loading…"; don't announce it twice. */
+  protected loadingTextFor(label: string): string {
+    const loading = this.texts.loading();
+    return label === loading ? '' : loading;
   }
 
   protected templateFor(groupId: string): TemplateRef<SpotlightItemTemplateContext> | null {

@@ -359,7 +359,7 @@ describe('createSearchEngine', () => {
     const h = harness([broken]);
     h.set('x');
     expect(h.latest()).toHaveLength(1);
-    expect(h.latest()[0]).toMatchObject({ id: 'nogroup', sourceId: 'nogroup', loading: false, items: [] });
+    expect(h.latest()[0]).toMatchObject({ id: 'nogroup', label: 'Something went wrong', sourceId: 'nogroup', loading: false, items: [] });
     expect(h.latest()[0].error).toBeInstanceOf(Error);
   });
 
@@ -368,7 +368,40 @@ describe('createSearchEngine', () => {
     const h = harness([hang]);
     h.set('x');
     expect(h.latest()).toHaveLength(1);
-    expect(h.latest()[0]).toMatchObject({ id: 'nogroup', loading: true, error: null, items: [] });
+    expect(h.latest()[0]).toMatchObject({ id: 'nogroup', label: 'Loading…', loading: true, error: null, items: [] });
+  });
+
+  it('keeps the learned label of a group-less source across engine restarts', () => {
+    let answer = true;
+    const remote: SpotlightSource = {
+      id: 'remote',
+      search: () =>
+        answer ? { groups: [{ id: 'customers', label: 'Customers', items: [item('c1', 'Acme', 'customers')] }] } : NEVER,
+    };
+    const learned = new Map<string, Map<string, string>>();
+    const run = (labelFor: (state: 'loading' | 'error') => string) => {
+      const emissions: SpotlightGroupState[][] = [];
+      const sub = createSearchEngine({
+        sources: regsOf([remote]),
+        input$: new BehaviorSubject<SpotlightQueryState>({ query: 'a', chip: null }),
+        retry$: new Subject<string>(),
+        recentIds: () => new Set<string>(),
+        onError: () => undefined,
+        learned,
+        placeholderLabel: labelFor,
+      }).subscribe((g) => emissions.push(g));
+      return { sub, latest: () => emissions.at(-1) ?? [] };
+    };
+    answer = false;
+    const before = run((state) => `[${state}]`);
+    expect(before.latest()[0]).toMatchObject({ id: 'remote', label: '[loading]', loading: true });
+    before.sub.unsubscribe();
+    answer = true;
+    run(() => 'unused').sub.unsubscribe();
+    answer = false;
+    const after = run(() => 'unused');
+    expect(after.latest()[0]).toMatchObject({ id: 'customers', label: 'Customers', loading: true, items: [] });
+    after.sub.unsubscribe();
   });
 
   it('isolates a throwing onError callback', () => {

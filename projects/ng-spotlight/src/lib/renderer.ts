@@ -24,6 +24,7 @@ export interface SpotlightGroupHeaderContext {
   label: string;
   total: number | undefined;
   loading: boolean;
+  /** Visually hidden text read after the label while loading; empty when the label already says it. */
   loadingText: string;
 }
 

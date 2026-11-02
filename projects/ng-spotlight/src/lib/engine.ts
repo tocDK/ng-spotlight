@@ -19,6 +19,7 @@ import {
 } from 'rxjs';
 import { normalizeResult, type NormalizedGroup } from './normalize';
 import { rankItems } from './rank';
+import { DEFAULT_SPOTLIGHT_TEXTS } from './texts';
 import type { SpotlightItem, SpotlightResult, SpotlightSource } from './types';
 
 export const DEFAULT_TIMEOUT_MS = 5000;
@@ -53,6 +54,16 @@ export interface SpotlightEngineOptions {
   retry$: Observable<string>;
   recentIds: () => ReadonlySet<string>;
   onError: (error: unknown, source: SpotlightSource) => void;
+  /**
+   * Group labels learned from earlier answers. Pass the same map on every restart so a
+   * group-less source keeps its header label across close/open.
+   */
+  learned?: SpotlightLearnedGroups;
+  /**
+   * Header label for a group-less source that has not answered yet: the `loading` text while
+   * it loads, the `error` text when it failed. Defaults to the built-in English texts.
+   */
+  placeholderLabel?: (state: 'loading' | 'error') => string;
 }
 
 export interface SpotlightQueryPlan {
@@ -69,7 +80,8 @@ interface SourceState {
 const IDLE: SourceState = { groups: [], loading: false, error: null };
 
 /** sourceId → (groupId → label), learned from answers so chips can target multi-group sources. */
-type LearnedGroups = Map<string, Map<string, string>>;
+export type SpotlightLearnedGroups = Map<string, Map<string, string>>;
+type LearnedGroups = SpotlightLearnedGroups;
 
 export function planQuery(sources: readonly SpotlightRegisteredSource[], raw: string): SpotlightQueryPlan {
   const trimmed = raw.trim();
@@ -194,7 +206,12 @@ function runSource(
   );
 }
 
-function toGroupStates(reg: SpotlightRegisteredSource, state: SourceState, learned: LearnedGroups): SpotlightGroupState[] {
+function toGroupStates(
+  reg: SpotlightRegisteredSource,
+  state: SourceState,
+  learned: LearnedGroups,
+  placeholderLabel: (state: 'loading' | 'error') => string,
+): SpotlightGroupState[] {
   const source = reg.source;
   if (state.groups.length > 0) {
     return state.groups.map((g) => ({
@@ -209,14 +226,15 @@ function toGroupStates(reg: SpotlightRegisteredSource, state: SourceState, learn
     }));
   }
   if (!state.loading && state.error === null) return [];
-  // Placeholder header (spinner or error row) in the source's usual group.
+  // Placeholder header (spinner or error row) in the source's usual group. A group-less
+  // source that never answered gets a neutral label, never its internal id.
   const known = learned.get(source.id);
   const id = source.group ?? (known && known.size > 0 ? [...known.keys()][0] : source.id);
   return [
     {
       key: `${source.id}::${id}`,
       id,
-      label: known?.get(id) ?? id,
+      label: known?.get(id) ?? placeholderLabel(state.error === null ? 'loading' : 'error'),
       sourceId: source.id,
       items: [],
       loading: state.loading,
@@ -229,11 +247,13 @@ function toGroupStates(reg: SpotlightRegisteredSource, state: SourceState, learn
 export function createSearchEngine(options: SpotlightEngineOptions): Observable<SpotlightGroupState[]> {
   const sources = sortSources(options.sources);
   if (sources.length === 0) return of([]);
-  const learned: LearnedGroups = new Map();
+  const learned: LearnedGroups = options.learned ?? new Map<string, Map<string, string>>();
+  const placeholderLabel =
+    options.placeholderLabel ?? ((state: 'loading' | 'error'): string => DEFAULT_SPOTLIGHT_TEXTS[state]);
   const input$ = options.input$.pipe(shareReplay({ bufferSize: 1, refCount: true }));
   return combineLatest(
     sources.map((reg) =>
-      runSource(reg, sources, input$, options, learned).pipe(map((state) => toGroupStates(reg, state, learned))),
+      runSource(reg, sources, input$, options, learned).pipe(map((state) => toGroupStates(reg, state, learned, placeholderLabel))),
     ),
   ).pipe(map((lists) => lists.flat()));
 }

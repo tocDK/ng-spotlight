@@ -7,7 +7,7 @@ import { staticSource } from './sources/static-source';
 import { SPOTLIGHT_HTTP_DEFAULTS } from './tokens';
 import { SpotlightService, type SpotlightOption } from './spotlight.service';
 import { flush, memoryRecent } from './testing.spec-util';
-import type { SpotlightConfig, SpotlightRecentEntry, SpotlightRecentStorage, SpotlightSource } from './types';
+import type { SpotlightConfig, SpotlightRecentEntry, SpotlightRecentStorage, SpotlightResult, SpotlightSource } from './types';
 
 let ran: string[] = [];
 
@@ -322,7 +322,7 @@ describe('SpotlightService', () => {
     expect(svc.loading()).toBe(true);
     expect(titles(svc)).not.toContain('Alpha one');
     expect(svc.options().filter((o) => o.sourceId === 'slow')).toEqual([]);
-    expect(svc.announcement()).toBe(svc.texts.resultsAnnouncement(svc.options().length));
+    expect(svc.announcement()).toBe(svc.texts.loading());
     const active = svc.activeOption();
     if (active) await svc.select(active);
     expect(ran).toEqual([]);
@@ -387,6 +387,28 @@ describe('SpotlightService', () => {
       providers: [provideZonelessChangeDetection(), provideRouter([]), provideSpotlight({ hotkeys: ['hyper.k'] })],
     });
     expect(() => TestBed.inject(SpotlightService)).toThrow(/unknown modifier "hyper"/);
+  });
+
+  it('labels a group-less source with the loading text, then with its learned label after close/open', () => {
+    let pending = new Subject<SpotlightResult>();
+    const remote: SpotlightSource = { id: 'crm-remote', search: () => pending };
+    const { svc } = setup({ sources: [remote], texts: { loading: 'Henter…' } });
+    svc.open('acme');
+    expect(svc.groups().map((g) => [g.id, g.label, g.loading])).toEqual([['crm-remote', 'Henter…', true]]);
+    pending.next({ groups: [{ id: 'customers', label: 'Customers', items: [{ id: 'a', title: 'Acme', group: 'customers', action: { route: '/a' } }] }] });
+    expect(svc.groups().map((g) => g.label)).toEqual(['Customers']);
+    svc.close();
+    pending = new Subject<SpotlightResult>();
+    svc.open('acme');
+    expect(svc.groups().map((g) => [g.id, g.label, g.loading])).toEqual([['customers', 'Customers', true]]);
+  });
+
+  it('announces the loading text, not "No results", while sources load with no rows', () => {
+    const remote: SpotlightSource = { id: 'remote', group: 'Remote', search: () => new Subject<SpotlightResult>() };
+    const { svc } = setup({ sources: [remote], texts: { loading: 'Henter…' } });
+    svc.open('acme');
+    expect(svc.loading()).toBe(true);
+    expect(svc.announcement()).toBe('Henter…');
   });
 
   it('close() resets the query, chip and results', () => {

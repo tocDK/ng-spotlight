@@ -55,14 +55,18 @@ export class SpotlightDefaultChip {
   template: `
     <span class="sp-group-label">{{ ctx().label }}</span>
     @if (ctx().total !== undefined) {
+      <!-- The separator keeps the group's accessible name readable: "Customers, 2". -->
+      <span style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0">, </span>
       <span class="sp-group-total">{{ ctx().total }}</span>
     }
     @if (ctx().loading) {
       <span class="sp-spinner" aria-hidden="true"></span>
-      <span
-        style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0"
-        >{{ ctx().loadingText }}</span
-      >
+      @if (ctx().loadingText) {
+        <span
+          style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0"
+          >, {{ ctx().loadingText }}</span
+        >
+      }
     }
   `,
 })

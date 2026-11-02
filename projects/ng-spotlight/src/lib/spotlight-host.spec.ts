@@ -324,6 +324,21 @@ describe('SpotlightHost', () => {
     await expectNoAxeViolations();
   });
 
+  it('stays expanded and announces loading while the first answer is pending', async () => {
+    const remote: SpotlightSource = { id: 'remote', search: () => new Promise<never[]>(() => undefined) };
+    const { svc, stable } = await setup({ sources: [remote] });
+    svc.open();
+    await stable();
+    typeInto('acme');
+    await stable();
+    expect(qa('[role="option"]')).toHaveLength(0);
+    expect(combobox().getAttribute('aria-expanded')).toBe('true');
+    expect(q('[role="status"]')!.textContent.trim()).toBe('Loading…');
+    // The placeholder header reads the loading text once, never the source id.
+    expect(q('.sp-group-header')!.textContent.trim()).toBe('Loading…');
+    await expectNoAxeViolations();
+  });
+
   it('gives Recent options valid, unique ids', async () => {
     const { svc, navigate, stable } = await setup();
     svc.open('cust');

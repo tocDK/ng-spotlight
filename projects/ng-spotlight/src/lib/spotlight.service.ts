@@ -7,6 +7,7 @@ import {
   DEFAULT_TIMEOUT_MS,
   toObservableResult,
   type SpotlightGroupState,
+  type SpotlightLearnedGroups,
   type SpotlightQueryState,
   type SpotlightRegisteredSource,
 } from './engine';
@@ -113,6 +114,8 @@ export class SpotlightService {
   private input$ = new BehaviorSubject<SpotlightQueryState>({ query: '', chip: null });
   private readonly retry$ = new Subject<string>();
   private engine: Subscription | null = null;
+  /** Group labels learned from answers; outlives the engine, which restarts on every open(). */
+  private readonly learnedGroups: SpotlightLearnedGroups = new Map();
 
   private readonly recentItems = computed(() => {
     const runs = this._resolvedRuns();
@@ -197,9 +200,12 @@ export class SpotlightService {
 
   readonly loading = computed(() => this._results().some((g) => g.loading));
 
-  readonly announcement = computed(() =>
-    this.texts.resultsAnnouncement(this.options().filter((o) => o.kind === 'item').length),
-  );
+  readonly announcement = computed(() => {
+    const count = this.options().filter((o) => o.kind === 'item').length;
+    // Announce "Loading…" rather than "No results" while sources are still answering.
+    if (count === 0 && this.loading()) return this.texts.loading();
+    return this.texts.resultsAnnouncement(count);
+  });
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -430,6 +436,8 @@ export class SpotlightService {
       retry$: this.retry$,
       recentIds: () => new Set(this._recent().map((entry) => entry.id)),
       onError: (error, source) => this.report(error, source),
+      learned: this.learnedGroups,
+      placeholderLabel: (state) => (state === 'loading' ? this.texts.loading() : this.texts.error()),
     }).subscribe((groups) => {
       this._results.set(groups);
       if (this._chip() === null) this._chipGroups.set(chipsFrom(groups));

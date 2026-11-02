@@ -113,6 +113,40 @@ describe('@tocdk/ng-spotlight/primeng', () => {
     expect(primeTree).toEqual(coreTree);
   });
 
+  it('names a group with a total the same way as the core renderer ("Customers, 2")', async () => {
+    const headerText = async (primeng: boolean) => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideZonelessChangeDetection(),
+          provideRouter([]),
+          provideSpotlight({
+            recent: { storage: memoryRecent() },
+            sources: [
+              {
+                id: 'crm',
+                search: () => ({
+                  groups: [{ id: 'customers', label: 'Customers', total: 2, items: [{ id: 'a', title: 'Acme', group: 'customers', action: { route: '/a' } }] }],
+                }),
+              },
+            ],
+          }),
+          ...(primeng ? [provideSpotlightPrimeNG(), providePrimeNG({})] : []),
+        ],
+      });
+      const fixture = TestBed.createComponent(Wrapper);
+      await fixture.whenStable();
+      TestBed.inject(SpotlightService).open('a');
+      await fixture.whenStable();
+      const header = document.getElementById(document.querySelector('[role="group"]')!.getAttribute('aria-labelledby')!)!;
+      const text = header.textContent.replace(/\s+/g, ' ').replace(/ ,/g, ',').trim();
+      fixture.destroy();
+      return text;
+    };
+    expect(await headerText(false)).toBe('Customers, 2');
+    expect(await headerText(true)).toBe('Customers, 2');
+  });
+
   it('has no axe violations with the open PrimeNG overlay', async () => {
     const { fixture } = await openWith(true);
     await expectNoAxeViolations();
