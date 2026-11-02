@@ -30,17 +30,43 @@ function isValidAction(value: unknown): boolean {
   );
 }
 
-/** id and title are non-empty strings, the action is usable and `children` (reserved) is absent. */
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === 'string';
+}
+
+function isValidBadge(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  const badge = value as Record<string, unknown>;
+  if (typeof badge['label'] !== 'string') return false;
+  const tone = badge['tone'];
+  return tone === undefined || tone === 'info' || tone === 'success' || tone === 'warn' || tone === 'danger';
+}
+
+/**
+ * id and title are non-empty strings, the action is usable, optional fields have the right
+ * shape and the reserved `children` key is absent (even when its value is undefined).
+ */
 export function isValidItem(value: unknown): value is SpotlightItem {
   if (typeof value !== 'object' || value === null) return false;
   const item = value as Record<string, unknown>;
-  return (
-    typeof item['id'] === 'string' &&
-    item['id'] !== '' &&
-    typeof item['title'] === 'string' &&
-    isValidAction(item['action']) &&
-    item['children'] === undefined
-  );
+  if (
+    typeof item['id'] !== 'string' ||
+    item['id'] === '' ||
+    typeof item['title'] !== 'string' ||
+    !isValidAction(item['action']) ||
+    'children' in item
+  ) {
+    return false;
+  }
+  if (!isOptionalString(item['subtitle']) || !isOptionalString(item['icon'])) return false;
+  const keywords = item['keywords'];
+  if (keywords !== undefined && !(Array.isArray(keywords) && keywords.every((k) => typeof k === 'string'))) {
+    return false;
+  }
+  const badges = item['badges'];
+  if (badges !== undefined && !(Array.isArray(badges) && badges.every(isValidBadge))) return false;
+  const suggested = item['suggested'];
+  return suggested === undefined || typeof suggested === 'boolean';
 }
 
 /**
@@ -74,7 +100,7 @@ export function normalizeResult(result: unknown, fallbackGroup: string): Normali
         items: rawItems.filter(isValidItem).map((item) => ({ ...item, group: id })),
       };
       const total = g['total'];
-      if (typeof total === 'number') group.total = total;
+      if (typeof total === 'number' && Number.isInteger(total) && total >= 0) group.total = total;
       groups.push(group);
     }
     return groups;

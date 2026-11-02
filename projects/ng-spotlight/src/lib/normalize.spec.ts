@@ -62,6 +62,8 @@ describe('normalizeResult', () => {
               { id: 'no-action', title: 'No action' },
               { id: 'bad-action', title: 'Bad action', action: { foo: 1 } },
               { id: 'kid', title: 'Has children', action: { route: '/' }, children: [] },
+              { id: 'kid-null', title: 'Children null', action: { route: '/' }, children: null },
+              { id: 'kid-undef', title: 'Children undefined', action: { route: '/' }, children: undefined },
               { id: 'ok', title: 'Fine', action: { url: 'https://example.com' } },
             ],
           },
@@ -82,6 +84,61 @@ describe('normalizeResult', () => {
     for (const bad of [null, undefined, 'x', 42, { foo: 1 }, { groups: null }]) {
       expect(() => normalizeResult(bad, 'f')).toThrow(SpotlightResultError);
     }
+  });
+});
+
+describe('optional field validation', () => {
+  const bad: Array<[string, Record<string, unknown>]> = [
+    ['subtitle not a string', { subtitle: 1 }],
+    ['icon not a string', { icon: ['x'] }],
+    ['keywords not an array of strings', { keywords: ['ok', 2] }],
+    ['keywords not an array', { keywords: 'acme' }],
+    ['badges not an array', { badges: 'VIP' }],
+    ['badge without label', { badges: [{ tone: 'info' }] }],
+    ['badge with unknown tone', { badges: [{ label: 'a', tone: 'purple' }] }],
+    ['suggested not a boolean', { suggested: 'yes' }],
+  ];
+
+  it.each(bad)('drops an item with %s in the flat-array path', (_name, extra) => {
+    const groups = normalizeResult(
+      [item('ok', 'Pages'), item('bad', 'Pages', extra as Partial<SpotlightItem>)],
+      'f',
+    );
+    expect(groups.flatMap((g) => g.items.map((i) => i.id))).toEqual(['ok']);
+  });
+
+  it.each(bad)('drops an item with %s in the grouped path', (_name, extra) => {
+    const groups = normalizeResult(
+      {
+        groups: [
+          {
+            id: 'g',
+            label: 'G',
+            items: [item('ok', 'g'), item('bad', 'g', extra as Partial<SpotlightItem>)],
+          },
+        ],
+      },
+      'f',
+    );
+    expect(groups[0].items.map((i) => i.id)).toEqual(['ok']);
+  });
+
+  it('keeps an item whose optional fields are all well formed', () => {
+    const ok = item('ok', 'Pages', {
+      subtitle: 's',
+      icon: 'pi pi-x',
+      keywords: ['a'],
+      badges: [{ label: 'VIP', tone: 'success' }, { label: 'plain' }],
+      suggested: true,
+    });
+    expect(normalizeResult([ok], 'f')[0].items).toHaveLength(1);
+  });
+});
+
+describe('group total', () => {
+  it.each([1.5, -1, Number.NaN, '3'])('ignores a total of %s', (total) => {
+    const groups = normalizeResult({ groups: [{ id: 'g', label: 'G', total, items: [] }] }, 'f');
+    expect(groups[0]).not.toHaveProperty('total');
   });
 });
 
