@@ -179,7 +179,11 @@ function runSource(
         }),
         catchError((error: unknown) => {
           last = [];
-          options.onError(error, source);
+          try {
+            options.onError(error, source);
+          } catch {
+            // a throwing consumer callback must not take down other groups
+          }
           return of<SourceState>({ groups: [], loading: false, error });
         }),
       );
@@ -207,8 +211,7 @@ function toGroupStates(reg: SpotlightRegisteredSource, state: SourceState, learn
   if (!state.loading && state.error === null) return [];
   // Placeholder header (spinner or error row) in the source's usual group.
   const known = learned.get(source.id);
-  const id = source.group ?? (known ? [...known.keys()][0] : undefined);
-  if (id === undefined) return [];
+  const id = source.group ?? (known && known.size > 0 ? [...known.keys()][0] : source.id);
   return [
     {
       key: `${source.id}::${id}`,

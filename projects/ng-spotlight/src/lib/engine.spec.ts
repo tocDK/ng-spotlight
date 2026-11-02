@@ -337,4 +337,64 @@ describe('createSearchEngine', () => {
     expect(calls).toContain('a');
     expect(h.titles()).toEqual(['X']);
   });
+
+  it('falls back to the 5000 ms timeout when timeoutMs is undefined', () => {
+    const hang: SpotlightSource = { id: 'hang', group: 'Hang', timeoutMs: undefined, search: () => NEVER };
+    const h = harness([hang]);
+    h.set('x');
+    vi.advanceTimersByTime(4999);
+    expect(h.latest()[0]).toMatchObject({ loading: true, error: null });
+    vi.advanceTimersByTime(1);
+    expect(h.latest()[0]).toMatchObject({ loading: false, items: [] });
+    expect(h.latest()[0].error).toBeInstanceOf(Error);
+  });
+
+  it('shows an error row for a group-less source that throws before its first answer', () => {
+    const broken: SpotlightSource = {
+      id: 'nogroup',
+      search: () => {
+        throw new Error('boom');
+      },
+    };
+    const h = harness([broken]);
+    h.set('x');
+    expect(h.latest()).toHaveLength(1);
+    expect(h.latest()[0]).toMatchObject({ id: 'nogroup', sourceId: 'nogroup', loading: false, items: [] });
+    expect(h.latest()[0].error).toBeInstanceOf(Error);
+  });
+
+  it('shows a loading placeholder for a group-less source that hangs on its first call', () => {
+    const hang: SpotlightSource = { id: 'nogroup', search: () => NEVER };
+    const h = harness([hang]);
+    h.set('x');
+    expect(h.latest()).toHaveLength(1);
+    expect(h.latest()[0]).toMatchObject({ id: 'nogroup', loading: true, error: null, items: [] });
+  });
+
+  it('isolates a throwing onError callback', () => {
+    const broken: SpotlightSource = {
+      id: 'broken',
+      group: 'Broken',
+      search: () => {
+        throw new Error('boom');
+      },
+    };
+    const emissions: SpotlightGroupState[][] = [];
+    const input = new BehaviorSubject<SpotlightQueryState>({ query: 'cust', chip: null });
+    const sub = createSearchEngine({
+      sources: regsOf([pages, broken]),
+      input$: input,
+      retry$: new Subject<string>(),
+      recentIds: () => new Set<string>(),
+      onError: () => {
+        throw new Error('consumer bug');
+      },
+    }).subscribe((g) => emissions.push(g));
+    const last = emissions.at(-1) ?? [];
+    expect(last.map((g) => [g.id, g.items.length, g.error !== null])).toEqual([
+      ['Pages', 1, false],
+      ['Broken', 0, true],
+    ]);
+    sub.unsubscribe();
+  });
 });
