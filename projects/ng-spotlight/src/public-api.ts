@@ -22,3 +22,5 @@ export type {
   SpotlightTexts,
   SpotlightTextValue,
 } from './lib/types';
+export { localStorageRecent } from './lib/recent';
+export { DEFAULT_SPOTLIGHT_TEXTS } from './lib/texts';
