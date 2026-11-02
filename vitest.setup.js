@@ -15,3 +15,20 @@ HTMLCanvasElement.prototype.getContext = () => null;
 const writeStderr = process.stderr.write.bind(process.stderr);
 process.stderr.write = (chunk, ...rest) =>
   String(chunk).startsWith('Error: Could not parse CSS stylesheet') && String(chunk).includes('@layer cdk-overlay') ? true : writeStderr(chunk, ...rest);
+
+// jsdom does not implement matchMedia, which PrimeNG may consult.
+if (typeof window !== 'undefined' && !('matchMedia' in window)) {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }),
+  });
+}

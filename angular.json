@@ -34,7 +34,7 @@
             "index": "projects/kitchen-sink/src/index.html",
             "browser": "projects/kitchen-sink/src/main.ts",
             "polyfills": [],
-            "allowedCommonJsDependencies": ["prismjs"],
+            "allowedCommonJsDependencies": ["prismjs", "moo"],
             "tsConfig": "projects/kitchen-sink/tsconfig.app.json",
             "assets": [],
             "styles": ["node_modules/primeicons/primeicons.css", "projects/kitchen-sink/src/styles.css"]

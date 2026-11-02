@@ -1,12 +1,14 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideZonelessChangeDetection } from '@angular/core';
+import { createEnvironmentInjector, EnvironmentInjector, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, spotlightRouteAudit } from '@tocdk/ng-spotlight';
+import { LinguiService } from '@tocdk/lingui-angular';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 import { EXAMPLES } from './examples';
+import { byoLinguiProviders } from './examples/byo-lingui.example';
 import { SOURCES } from './examples/sources.generated';
 import { ExampleCard } from './shared/example-card';
 import type { PageContent } from './shared/page-content.types';
@@ -14,6 +16,33 @@ import type { PageContent } from './shared/page-content.types';
 const pageExamples = routes.flatMap((r) => (r.data?.['content'] as PageContent | undefined)?.examples.map((e) => e.key) ?? []);
 
 describe('kitchen sink', () => {
+  it('has a page for every section of the spec', () => {
+    expect(routes.flatMap((r) => (typeof r.title === 'string' ? [r.title] : []))).toEqual([
+      'Getting started',
+      'Route source',
+      'HTTP source',
+      'Custom templates',
+      'Themes',
+      'Hotkeys & prefixes',
+      'Accessibility',
+      'Build your own',
+      'API reference',
+    ]);
+  });
+
+  it('byo-lingui switches the palette texts live with the locale', async () => {
+    TestBed.configureTestingModule({ providers: [provideZonelessChangeDetection(), provideRouter([])] });
+    const env = createEnvironmentInjector(byoLinguiProviders, TestBed.inject(EnvironmentInjector));
+    const svc = env.get(SpotlightService);
+    expect(svc.texts.placeholder()).toBe('Search…');
+    expect(svc.texts.resultsAnnouncement(3)).toBe('3 results');
+    await env.get(LinguiService).activate('da');
+    expect(svc.texts.placeholder()).toBe('Søg…');
+    expect(svc.texts.all()).toBe('Alle');
+    expect(svc.texts.resultsAnnouncement(3)).toBe('3 resultater');
+    env.destroy();
+  });
+
   it('labels every route (dogfoods spotlightRouteAudit)', () => {
     expect(spotlightRouteAudit(routes)).toEqual([]);
   });
