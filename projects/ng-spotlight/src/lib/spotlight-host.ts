@@ -16,6 +16,7 @@ import {
   inject,
   Injector,
   TemplateRef,
+  untracked,
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
@@ -67,7 +68,7 @@ const PHONE_QUERY = '(max-width: 600px)';
             }
           </div>
         }
-        <div class="sp-list" role="listbox" tabindex="-1" [id]="ids.listbox" [attr.aria-label]="texts.placeholder()">
+        <div class="sp-list" role="listbox" tabindex="-1" [attr.aria-busy]="svc.loading() || null" [id]="ids.listbox" [attr.aria-label]="texts.placeholder()">
           @for (group of svc.groups(); track group.key; let g = $index) {
             <div class="sp-group" role="group" [attr.aria-labelledby]="ids.prefix + '-g' + g">
               <div class="sp-group-header" [id]="ids.prefix + '-g' + g">
@@ -199,8 +200,8 @@ export class SpotlightHost {
 
   constructor() {
     effect(() => {
-      if (this.svc.isOpen()) this.attach();
-      else this.detach();
+      const open = this.svc.isOpen();
+      untracked(() => (open ? this.attach() : this.detach()));
     });
     afterRenderEffect(() => {
       const id = this.activeId();

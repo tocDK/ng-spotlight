@@ -303,16 +303,30 @@ describe('SpotlightHost', () => {
     expect(q('[role="option"] .sp-badge')!.textContent.trim()).toBe('new');
   });
 
-  it('keeps a loading group header with a spinner and gives Recent options valid unique ids', async () => {
-    const slow: SpotlightSource = { id: 'slow', group: 'Slow', search: () => new Promise<never[]>(() => undefined) };
-    const { svc, navigate, stable } = await setup({ sources: [pages, slow] });
+  it('keeps a loading group header and spinner with no option rows', async () => {
+    const hangs: SpotlightSource = {
+      id: 'hangs',
+      group: 'Hangs',
+      search: (query) =>
+        query === 'a' ? [{ id: 'a1', title: 'Alpha', group: 'Hangs', action: { route: '/a' } }] : new Promise<never[]>(() => undefined),
+    };
+    const { svc, stable } = await setup({ sources: [hangs] });
     svc.open();
     await stable();
-    typeInto('d');
+    typeInto('a');
     await stable();
-    const headers = qa('.sp-group-header').map((h) => h.textContent.trim());
-    expect(headers.some((h) => h.includes('Slow'))).toBe(true);
-    expect(q('.sp-group-header [role="progressbar"], .sp-group-header .sp-spinner')).not.toBeNull();
+    expect(qa('[role="option"]')).toHaveLength(1);
+    typeInto('ab');
+    await stable();
+    expect(qa('[role="option"]')).toHaveLength(0);
+    expect(qa('[role="group"] .sp-group-header .sp-spinner')).toHaveLength(1);
+    await expectNoAxeViolations();
+  });
+
+  it('gives Recent options valid, unique ids', async () => {
+    const { svc, navigate, stable } = await setup();
+    svc.open('cust');
+    await stable();
     qa('[role="option"]')[0].click();
     await stable();
     expect(navigate).toHaveBeenCalled();
@@ -322,6 +336,88 @@ describe('SpotlightHost', () => {
     expect(ids.length).toBeGreaterThan(0);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(id).toMatch(/^[A-Za-z][\w-]*$/);
+  });
+
+  it('does not cycle or prevent Tab with a single chip', async () => {
+    const { svc, stable } = await setup();
+    svc.open();
+    await stable();
+    typeInto('zzz');
+    await stable();
+    const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    combobox().dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(qa('.sp-chip-button')).toHaveLength(0);
+  });
+
+  it('wraps ArrowDown from the last row to the first', async () => {
+    const { svc, stable } = await setup();
+    svc.open();
+    await stable();
+    typeInto('o');
+    await stable();
+    for (let n = 0; n < 3; n++) press(combobox(), { key: 'ArrowDown' });
+    await stable();
+    expect(document.getElementById(combobox().getAttribute('aria-activedescendant')!)!.textContent).toContain('Dashboard');
+  });
+
+  it('passes newTab for Ctrl+Enter and Ctrl-click', async () => {
+    const select = vi.fn(() => Promise.resolve());
+    const { svc, stable } = await setup();
+    vi.spyOn(svc, 'select').mockImplementation(select);
+    svc.open();
+    await stable();
+    press(combobox(), { key: 'Enter', ctrlKey: true });
+    press(combobox(), { key: 'Enter' });
+    qa('[role="option"]')[0].dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+    expect(select.mock.calls.map((c) => (c as unknown[])[1])).toEqual([{ newTab: true }, { newTab: false }, { newTab: true }]);
+  });
+
+  it('ignores Enter with no active option and keys that match no hotkey', async () => {
+    const { svc, navigate, stable } = await setup();
+    svc.open();
+    await stable();
+    typeInto('zzz');
+    await stable();
+    press(combobox(), { key: 'Enter' });
+    await stable();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(svc.isOpen()).toBe(true);
+    const event = new KeyboardEvent('keydown', { key: 'x', bubbles: true, cancelable: true });
+    document.body.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(svc.isOpen()).toBe(true);
+  });
+
+  it('closes and stops reacting to hotkeys when the host is destroyed', async () => {
+    const { fixture, svc, stable } = await setup();
+    svc.open();
+    await stable();
+    expect(qa('.sp-pane')).toHaveLength(1);
+    fixture.destroy();
+    expect(qa('.sp-pane')).toHaveLength(0);
+    expect(svc.isOpen()).toBe(false);
+    press(document.body, { key: ' ', code: 'Space', ctrlKey: true });
+    await flush();
+    expect(svc.isOpen()).toBe(false);
+    expect(qa('.sp-pane')).toHaveLength(0);
+  });
+
+  it('has no axe violations in the no-results, error and loading states', async () => {
+    const flaky: SpotlightSource = {
+      id: 'flaky',
+      group: 'Flaky',
+      search: (query) => (query === 'x' ? throwError(() => new Error('down')) : new Promise<never[]>(() => undefined)),
+    };
+    const { svc, stable } = await setup({ sources: [pages, flaky], onError: () => undefined });
+    svc.open();
+    await stable();
+    typeInto('zzz');
+    await stable();
+    expect(q('.sp-empty')).toBeNull();
+    typeInto('x');
+    await stable();
+    await expectNoAxeViolations();
   });
 
   it.each(['light', 'dark'])('has no axe violations with the open overlay (%s)', async (mode) => {
