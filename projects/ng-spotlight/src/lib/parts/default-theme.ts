@@ -87,7 +87,7 @@ export const SPOTLIGHT_DEFAULT_CSS = `
 .sp-theme-default .sp-title, .sp-theme-default .sp-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-theme-default .sp-subtitle { color: var(--sp-muted); font-size: 12px; }
 .sp-theme-default .sp-badges { display: inline-flex; gap: 4px; }
-.sp-theme-default .sp-badge { padding: 0 6px; border: 1px solid currentColor; border-radius: 4px; font-size: 11px; line-height: 18px; color: var(--sp-info); }
+.sp-theme-default .sp-badge { padding: 0 6px; background: var(--sp-bg); border: 1px solid currentColor; border-radius: 4px; font-size: 11px; line-height: 18px; color: var(--sp-info); }
 .sp-theme-default .sp-badge[data-tone='success'] { color: var(--sp-success); }
 .sp-theme-default .sp-badge[data-tone='warn'] { color: var(--sp-warn); }
 .sp-theme-default .sp-badge[data-tone='danger'] { color: var(--sp-danger); }

@@ -138,6 +138,14 @@ describe('default theme', () => {
     expect(SPOTLIGHT_DEFAULT_CSS).not.toMatch(/(^|\n)\.sp-dialog/);
   });
 
+  it('keeps the sheet layout, the badge background and the tone selectors in the CSS', () => {
+    expect(SPOTLIGHT_DEFAULT_CSS).toContain('.sp-theme-default.sp-sheet .sp-dialog');
+    expect(SPOTLIGHT_DEFAULT_CSS).toMatch(/\.sp-theme-default \.sp-badge \{[^}]*background: var\(--sp-bg\)/);
+    for (const tone of ['success', 'warn', 'danger']) {
+      expect(SPOTLIGHT_DEFAULT_CSS).toContain(`.sp-theme-default .sp-badge[data-tone='${tone}']`);
+    }
+  });
+
   it('adds the stylesheet to the document when rendered', async () => {
     TestBed.configureTestingModule({ providers: [provideZonelessChangeDetection()] });
     const fixture = TestBed.createComponent(SpotlightDefaultTheme);
