@@ -18,8 +18,8 @@
     "module": "ES2022",
     "lib": ["ES2022", "dom", "dom.iterable"],
     "paths": {
-      "@tocdk/ng-spotlight": ["./projects/ng-spotlight/src/public-api.ts"],
-      "@tocdk/ng-spotlight/primeng": ["./projects/ng-spotlight/primeng/src/public-api.ts"]
+      "@tocdk-oss/ng-spotlight": ["./projects/ng-spotlight/src/public-api.ts"],
+      "@tocdk-oss/ng-spotlight/primeng": ["./projects/ng-spotlight/primeng/src/public-api.ts"]
     }
   },
   "angularCompilerOptions": {

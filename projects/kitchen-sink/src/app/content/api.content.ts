@@ -69,7 +69,7 @@ export const API_CONTENT: PageContent = {
     },
     {
       id: 'primeng',
-      title: '@tocdk/ng-spotlight/primeng',
+      title: '@tocdk-oss/ng-spotlight/primeng',
       markdown: `
 | Export | What it is |
 |---|---|

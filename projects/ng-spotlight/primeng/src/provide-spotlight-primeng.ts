@@ -1,5 +1,5 @@
 import { makeEnvironmentProviders, type EnvironmentProviders } from '@angular/core';
-import { SPOTLIGHT_RENDERER, type SpotlightRenderer } from '@tocdk/ng-spotlight';
+import { SPOTLIGHT_RENDERER, type SpotlightRenderer } from '@tocdk-oss/ng-spotlight';
 import {
   SpotlightPrimeNgBadge,
   SpotlightPrimeNgChip,

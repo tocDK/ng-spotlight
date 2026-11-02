@@ -26,7 +26,7 @@ class from a partial \`SpotlightRenderer\` (\`{ dialog: { panelClass } }\` via \
       title: 'PrimeNG',
       markdown: `
 \`\`\`ts
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 providers: [providePrimeNG({ theme: { preset: Aura } }), provideSpotlight({ … }), provideSpotlightPrimeNG()]
 \`\`\`
 

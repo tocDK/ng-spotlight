@@ -1,7 +1,7 @@
 # ng-spotlight
 
 [![CI](https://github.com/tocDK/ng-spotlight/actions/workflows/ci.yml/badge.svg)](https://github.com/tocDK/ng-spotlight/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@tocdk/ng-spotlight.svg)](https://www.npmjs.com/package/@tocdk/ng-spotlight)
+[![npm](https://img.shields.io/npm/v/@tocdk-oss/ng-spotlight.svg)](https://www.npmjs.com/package/@tocdk-oss/ng-spotlight)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Angular 21](https://img.shields.io/badge/angular-21-dd0031.svg)](https://angular.dev/)
 
@@ -22,7 +22,7 @@ Apps with many pages and lots of records are slow to navigate by menu. ng-spotli
 
 ```ts
 // app.config.ts
-import { provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk/ng-spotlight';
+import { provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk-oss/ng-spotlight';
 
 provideSpotlight({
   hotkeys: ['ctrl.space', 'mod.k'],
@@ -50,7 +50,7 @@ The HTTP source expects a simple grouped response by default, and you can map an
 ## Install
 
 ```bash
-npm i @tocdk/ng-spotlight
+npm i @tocdk-oss/ng-spotlight
 ```
 
 Peer dependencies: `@angular/core`, `@angular/common`, `@angular/router`, `@angular/cdk` and `rxjs`. Versions follow
@@ -61,7 +61,7 @@ Angular majors: `21.x` supports Angular 21. For the PrimeNG adapter you also nee
 ```ts
 // app.config.ts
 import { provideRouter } from '@angular/router';
-import { provideSpotlight, routeSource } from '@tocdk/ng-spotlight';
+import { provideSpotlight, routeSource } from '@tocdk-oss/ng-spotlight';
 
 export const appConfig = {
   providers: [provideRouter(routes), provideSpotlight({ sources: [routeSource()] })],
@@ -80,7 +80,7 @@ are skipped; `data: { spotlight: false }` opts a route out.
 ## Sources
 
 ```ts
-import { localStorageRecent, provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, routeSource, staticSource, httpSource } from '@tocdk-oss/ng-spotlight';
 
 provideSpotlight({
   hotkeys: ['ctrl.space', 'mod.k'],                       // default; 'mod' = Cmd on macOS, Ctrl elsewhere
@@ -101,7 +101,7 @@ provideSpotlight({
 - `httpSource({ url })` sends `GET {url}?q={query}` (plus `chip={groupId}` when a chip is active) and expects
   `{ groups: [{ id, label, total?, items }] }` or a flat item array. Results keep the server's order. Override the
   request and response globally (`provideSpotlight({ http: { request, map } })`) or per source
-  (`httpSource({ url, request, map })`). The JSON Schema ships as `@tocdk/ng-spotlight/schema/spotlight-response.schema.json`.
+  (`httpSource({ url, request, map })`). The JSON Schema ships as `@tocdk-oss/ng-spotlight/schema/spotlight-response.schema.json`.
 - Any object implementing `SpotlightSource` is a source: `search(query, ctx)` may return items, a promise or an
   Observable, and should stop when `ctx.signal` aborts.
 
@@ -117,7 +117,7 @@ else the one opened most recently, else the `<spotlight-host>` created first. Pl
 ## CI check for unlabelled routes
 
 ```ts
-import { spotlightRouteAudit } from '@tocdk/ng-spotlight';
+import { spotlightRouteAudit } from '@tocdk-oss/ng-spotlight';
 
 it('labels every admin route', () => {
   expect(spotlightRouteAudit(adminRoutes)).toEqual([]);
@@ -142,7 +142,7 @@ The default theme uses CSS variables only (`--sp-bg`, `--sp-fg`, `--sp-muted`, `
 `theme: 'none'` ships no CSS.
 
 ```ts
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 
 providers: [providePrimeNG({ theme: { preset: Aura } }), provideSpotlight({ /* … */ }), provideSpotlightPrimeNG()];
 ```
@@ -181,8 +181,8 @@ The whole public API, with every member, is snapshotted in [`api/ng-spotlight.ap
 
 | Import | What |
 |---|---|
-| `@tocdk/ng-spotlight` | Headless core (Angular + CDK only) |
-| `@tocdk/ng-spotlight/primeng` | PrimeNG adapter (optional peer dependency) |
+| `@tocdk-oss/ng-spotlight` | Headless core (Angular + CDK only) |
+| `@tocdk-oss/ng-spotlight/primeng` | PrimeNG adapter (optional peer dependency) |
 
 Versions follow Angular majors: `21.x` is for Angular 21.
 

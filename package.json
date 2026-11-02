@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
-  "description": "Workspace for @tocdk/ng-spotlight and its kitchen sink.",
+  "description": "Workspace for @tocdk-oss/ng-spotlight and its kitchen sink.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tocDK/ng-spotlight.git"

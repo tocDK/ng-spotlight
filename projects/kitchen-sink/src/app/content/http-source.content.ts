@@ -16,7 +16,7 @@ It expects a \`SpotlightResponse\`; a flat \`SpotlightItem[]\` is grouped by \`i
 ] }] }
 \`\`\`
 
-Backends in any language can validate against \`@tocdk/ng-spotlight/schema/spotlight-response.schema.json\`.
+Backends in any language can validate against \`@tocdk-oss/ng-spotlight/schema/spotlight-response.schema.json\`.
 Defaults: \`minLength\` 2, \`debounceMs\` 150, \`timeoutMs\` 5000. A new keystroke cancels the request in flight.
 The source uses \`HttpClient\`, so the app's interceptors (auth, tenant) apply; call \`provideHttpClient()\`.
       `,

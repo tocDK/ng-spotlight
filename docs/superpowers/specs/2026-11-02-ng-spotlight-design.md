@@ -1,7 +1,7 @@
 # ng-spotlight: design
 
 **Status:** draft for review · **Date:** 2026-11-02 · **Owner:** Thomas Christensen (tocDK)
-**Package:** `@tocdk/ng-spotlight` (MIT) · **Repo:** https://github.com/tocDK/ng-spotlight
+**Package:** `@tocdk-oss/ng-spotlight` (MIT) · **Repo:** https://github.com/tocDK/ng-spotlight
 **Sibling:** `@tocdk/lingui-angular`. Same repo layout, tooling, release model and kitchen-sink style.
 
 ## 1. Purpose
@@ -31,8 +31,8 @@ First consumer: the Tivedo admin (FR-087, tivedo-app/tivedo-claude#412). It has 
 
 | Entry point | Contents | Dependencies |
 |---|---|---|
-| `@tocdk/ng-spotlight` | Headless core: overlay host, hotkeys, keyboard navigation, ARIA, sources, ranking, recent items, default CSS-variable theme, route audit helper | `@angular/core`, `@angular/common`, `@angular/router`, `@angular/cdk` (peer) |
-| `@tocdk/ng-spotlight/primeng` | PrimeNG renderer adapter | `primeng` (optional peer) |
+| `@tocdk-oss/ng-spotlight` | Headless core: overlay host, hotkeys, keyboard navigation, ARIA, sources, ranking, recent items, default CSS-variable theme, route audit helper | `@angular/core`, `@angular/common`, `@angular/router`, `@angular/cdk` (peer) |
+| `@tocdk-oss/ng-spotlight/primeng` | PrimeNG renderer adapter | `primeng` (optional peer) |
 
 - **One repo, one npm package, built with ng-packagr secondary entry points.** Apps that don't use PrimeNG never resolve it.
 - **Versions follow Angular majors**, like lingui-angular: `21.x` supports Angular 21, `22.x` supports Angular 22.
@@ -257,4 +257,4 @@ That is about 4 days of lane time in total.
 | D6 | Texts via config (string, Signal or Observable); no i18n dependency; lingui shown in "Build your own" | Thomas, 2026-11-02 |
 | D7 | Config-driven API (`provideSpotlight` + `<spotlight-host>`), not composable primitives | Thomas, 2026-11-02 |
 | D8 | Hotkeys `ctrl.space` + `mod.k` by default | Thomas, 2026-11-02 |
-| D9 | Name `@tocdk/ng-spotlight` | Thomas, 2026-11-02 |
+| D9 | Name `@tocdk-oss/ng-spotlight` | Thomas, 2026-11-02 |

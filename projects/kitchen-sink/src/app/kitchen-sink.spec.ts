@@ -3,7 +3,7 @@ import { createEnvironmentInjector, EnvironmentInjector, provideZonelessChangeDe
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, spotlightRouteAudit } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, spotlightRouteAudit } from '@tocdk-oss/ng-spotlight';
 import { LinguiService } from '@tocdk/lingui-angular';
 import { providePrimeNG } from 'primeng/config';
 import { expectNoAxeViolations } from '../../../ng-spotlight/src/lib/testing.spec-util';

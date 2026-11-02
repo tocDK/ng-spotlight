@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
-import { provideSpotlightPrimeNG } from '@tocdk/ng-spotlight/primeng';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
+import { provideSpotlightPrimeNG } from '@tocdk-oss/ng-spotlight/primeng';
 import { demoSources } from '../shared/demo-data';
 
 // PrimeNG components (p-iconfield, p-chip, p-tag, pi icons) with colours from the app's PrimeNG preset.

@@ -1,7 +1,7 @@
 import { Component, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideSpotlight, SpotlightHost, SpotlightService, staticSource } from '@tocdk/ng-spotlight';
+import { provideSpotlight, SpotlightHost, SpotlightService, staticSource } from '@tocdk-oss/ng-spotlight';
 import { providePrimeNG } from 'primeng/config';
 import { expectNoAxeViolations, memoryRecent } from '../../src/lib/testing.spec-util';
 import { toneToSeverity } from './primeng-parts';
@@ -70,7 +70,7 @@ function a11yTree(root: Element): string[] {
   return out;
 }
 
-describe('@tocdk/ng-spotlight/primeng', () => {
+describe('@tocdk-oss/ng-spotlight/primeng', () => {
   it('maps badge tones to p-tag severities', () => {
     expect(toneToSeverity('info')).toBe('info');
     expect(toneToSeverity('success')).toBe('success');

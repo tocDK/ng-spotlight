@@ -6,7 +6,7 @@ import {
   SpotlightHost,
   SpotlightTrigger,
   type SpotlightRenderer,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // theme: 'none' ships no CSS. A partial renderer adds a class to the pane so the app can style it.

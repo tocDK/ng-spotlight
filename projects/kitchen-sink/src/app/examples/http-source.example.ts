@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { httpSource, localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { httpSource, localStorageRecent, provideSpotlight, SpotlightHost, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { mockBackendInterceptor } from '../shared/mock-backend';
 
 interface LegacyResponse {

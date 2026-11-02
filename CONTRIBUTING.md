@@ -1,4 +1,4 @@
-# Contributing to @tocdk/ng-spotlight
+# Contributing to @tocdk-oss/ng-spotlight
 
 PRs are welcome. Every change lands through a pull request against `main`; branch names follow
 `toc/<topic>-<short-description>`. Use [Conventional Commits](https://www.conventionalcommits.org/) prefixes
@@ -50,9 +50,9 @@ Publishing happens only when the operator pushes a version tag.
 One-time setup (done 2026-11-02 unless marked):
 1. npm auth is **trusted publishing (OIDC)**: `release.yml` has no npm token or secret.
    - npm only lets you add a trusted publisher to a package that already exists on the registry (it has no
-     "pending publisher"). So the **first** publish of `@tocdk/ng-spotlight` is done once by hand (still to do):
+     "pending publisher"). So the **first** publish of `@tocdk-oss/ng-spotlight` is done once by hand (still to do):
      build and pack locally (`npm ci && npm run build:lib && cd dist/ng-spotlight && npm pack`), then
-     `npm login` and `npm publish ./tocdk-ng-spotlight-21.0.0.tgz --access public` (or use a one-off granular
+     `npm login` and `npm publish ./tocdk-oss-ng-spotlight-21.0.0.tgz --access public` (or use a one-off granular
      token and revoke it afterwards).
    - Then on npmjs.com → the package → Settings → Trusted publishing → GitHub Actions: owner `tocDK`, repository
      `ng-spotlight`, workflow `release.yml`, environment `npm`. Optionally set "Require two-factor authentication

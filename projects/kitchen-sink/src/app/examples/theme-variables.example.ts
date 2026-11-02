@@ -6,7 +6,7 @@ import {
   SpotlightHost,
   SpotlightTrigger,
   type SpotlightRenderer,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { demoSources } from '../shared/demo-data';
 
 // Override the CSS variables. Globally: :root { --sp-accent: … }. Here: on one palette's pane class.

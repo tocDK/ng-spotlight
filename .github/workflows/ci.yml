@@ -79,8 +79,8 @@ jobs:
       - run: npm run check:api
       - name: Verify the package layout
         run: |
-          test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs
-          test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight-primeng.mjs
+          test -f dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight.mjs
+          test -f dist/ng-spotlight/fesm2022/tocdk-oss-ng-spotlight-primeng.mjs
           test -f dist/ng-spotlight/schema/spotlight-response.schema.json
           test -f dist/ng-spotlight/README.md
           test -f dist/ng-spotlight/LICENSE

@@ -7,7 +7,7 @@ import type {
   SpotlightGroupHeaderContext,
   SpotlightInputContext,
   SpotlightRowContext,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 import { Chip } from 'primeng/chip';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';

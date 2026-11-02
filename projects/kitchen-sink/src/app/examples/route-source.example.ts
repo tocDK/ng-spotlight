@@ -7,7 +7,7 @@ import {
   SpotlightHost,
   spotlightRouteAudit,
   SpotlightTrigger,
-} from '@tocdk/ng-spotlight';
+} from '@tocdk-oss/ng-spotlight';
 
 @Component({ template: '' })
 class DemoPage {}

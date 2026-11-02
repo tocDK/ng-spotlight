@@ -1,4 +1,4 @@
-import { staticSource, type SpotlightSource } from '@tocdk/ng-spotlight';
+import { staticSource, type SpotlightSource } from '@tocdk-oss/ng-spotlight';
 
 /** The same small data set for every theme and template demo. */
 export function demoSources(): SpotlightSource[] {

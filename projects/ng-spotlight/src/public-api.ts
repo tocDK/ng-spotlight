@@ -1,4 +1,4 @@
-// Public API for @tocdk/ng-spotlight. Every change here must show up in api/ng-spotlight.api.md
+// Public API for @tocdk-oss/ng-spotlight. Every change here must show up in api/ng-spotlight.api.md
 // (npm run check:api). Members tagged internal in their JSDoc are stripped from the published .d.ts.
 
 export type {

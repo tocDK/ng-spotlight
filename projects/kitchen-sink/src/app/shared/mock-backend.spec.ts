@@ -1,5 +1,5 @@
 import { HttpParams, HttpRequest, type HttpEvent, type HttpResponse } from '@angular/common/http';
-import type { SpotlightGroup } from '@tocdk/ng-spotlight';
+import type { SpotlightGroup } from '@tocdk-oss/ng-spotlight';
 import { firstValueFrom, type Observable } from 'rxjs';
 import { mockBackendInterceptor, resetMockBackend } from './mock-backend';
 

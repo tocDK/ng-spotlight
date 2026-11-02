@@ -8,7 +8,7 @@ export const GETTING_STARTED_CONTENT: PageContent = {
       title: 'Install',
       markdown: `
 \`\`\`bash
-npm i @tocdk/ng-spotlight
+npm i @tocdk-oss/ng-spotlight
 \`\`\`
 
 Peer dependencies: \`@angular/core\`, \`@angular/common\`, \`@angular/router\`, \`@angular/cdk\` (21.x) and \`rxjs\`.

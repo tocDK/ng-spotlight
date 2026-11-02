@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, SpotlightTrigger } from '@tocdk/ng-spotlight';
+import { localStorageRecent, provideSpotlight, SpotlightHost, SpotlightService, SpotlightTrigger } from '@tocdk-oss/ng-spotlight';
 import { map, scan } from 'rxjs';
 import { demoSources } from '../shared/demo-data';
 

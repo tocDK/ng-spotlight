@@ -10,10 +10,10 @@ export default defineConfig({
     // Vite does not read tsconfig "paths"; mirror them here. The more specific alias goes first.
     alias: [
       {
-        find: /^@tocdk\/ng-spotlight\/primeng$/,
+        find: /^@tocdk-oss\/ng-spotlight\/primeng$/,
         replacement: fromRoot('./projects/ng-spotlight/primeng/src/public-api.ts'),
       },
-      { find: /^@tocdk\/ng-spotlight$/, replacement: fromRoot('./projects/ng-spotlight/src/public-api.ts') },
+      { find: /^@tocdk-oss\/ng-spotlight$/, replacement: fromRoot('./projects/ng-spotlight/src/public-api.ts') },
     ],
   },
   test: {
