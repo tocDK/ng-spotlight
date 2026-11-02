@@ -46,7 +46,11 @@ jobs:
       - name: Use HTTPS for GitHub git dependencies
         run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
       - run: npm ci
+      # Fails the job when coverage drops below the thresholds in vitest.config.ts.
       - run: npm run test:coverage
+      - name: Coverage summary
+        if: always()
+        run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -71,6 +75,8 @@ jobs:
       - run: npm ci
       - run: npm run build:lib
       - run: npm run check:size
+      # The built .d.ts must match the committed public API snapshot in api/.
+      - run: npm run check:api
       - name: Verify the package layout
         run: |
           test -f dist/ng-spotlight/fesm2022/tocdk-ng-spotlight.mjs

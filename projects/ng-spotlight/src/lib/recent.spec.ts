@@ -99,6 +99,16 @@ describe('recent helpers', () => {
 
   it('turns a stored route entry back into an item', () => {
     expect(entryToItem(entry('a'))).toEqual({ id: 'a', title: 'a', group: 'g', action: { route: '/a' } });
+    const full = toRecentEntry(routeItem, 'routes');
+    expect(entryToItem(full)).toEqual({
+      id: 'cust',
+      title: 'Customers',
+      subtitle: '/customers',
+      icon: 'pi pi-users',
+      group: 'Pages',
+      badges: [{ label: 'new' }],
+      action: { route: '/customers' },
+    });
   });
 
   it('pushes most-recent-first, de-duplicates by source and id, and caps the list', () => {
@@ -115,6 +125,9 @@ describe('recent helpers', () => {
     expect(isRecentEntry(entry('a'))).toBe(true);
     expect(isRecentEntry({ ...entry('a'), action: { run: 'x' } })).toBe(false);
     expect(isRecentEntry({ id: 'a', title: 'a', group: 'g' })).toBe(false);
+    expect(isRecentEntry(null)).toBe(false);
+    expect(isRecentEntry('a')).toBe(false);
+    expect(isRecentEntry({ ...entry('a'), action: null })).toBe(false);
   });
 });
 
@@ -136,6 +149,8 @@ describe('isRecentEntry rejects malformed or unsafe stored data', () => {
     ['a route array with a non-finite number', { ...entry('a'), action: { route: ['a', Infinity] } }, false],
     ['a matrix param with a function value', { ...entry('a'), action: { route: ['a', { f: () => 1 }] } }, false],
     ['a matrix param with an undefined value', { ...entry('a'), action: { route: ['a', { u: undefined }] } }, false],
+    ['a matrix param nested deeper than 8 levels', { ...entry('a'), action: { route: ['a', { a: { b: { c: { d: { e: { f: { g: { h: { i: 1 } } } } } } } } }] } }, false],
+    ['a matrix param with a null-prototype object', { ...entry('a'), action: { route: ['a', Object.assign(Object.create(null) as object, { tab: 'x' })] } }, true],
     ['a matrix param that is a class instance', { ...entry('a'), action: { route: ['a', { d: new Date(0) }] } }, false],
     ['a route array with string and number segments', { ...entry('a'), action: { route: ['a', 2] } }, true],
     ['a url action with a javascript: scheme', { ...entry('a'), action: { url: 'javascript:alert(1)' } }, false],

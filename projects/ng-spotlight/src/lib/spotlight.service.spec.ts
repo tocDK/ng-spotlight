@@ -352,6 +352,42 @@ describe('SpotlightService', () => {
     expect(order('b')).toEqual(['y', 'x']);
   });
 
+  it('logs source errors to the console when no onError is given', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const failing: SpotlightSource = { id: 'broken', group: 'Broken', search: () => throwError(() => new Error('down')) };
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection(), provideRouter([]), provideSpotlight({ recent: { storage: memoryRecent() }, sources: [failing] })],
+    });
+    const svc = TestBed.inject(SpotlightService);
+    svc.open();
+    svc.setQuery('x');
+    await flush();
+    expect(error).toHaveBeenCalledWith('[ng-spotlight] source "broken" failed', new Error('down'));
+  });
+
+  it('survives an onError handler that throws', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { svc } = setup({
+      onError: () => {
+        throw new Error('handler broke');
+      },
+    });
+    svc.open();
+    svc.setQuery('evil');
+    await svc.select(opt(svc, 'Evil link'));
+    expect(error).toHaveBeenCalledWith('[ng-spotlight] onError threw', new Error('handler broke'));
+    expect(svc.isOpen()).toBe(false);
+  });
+
+  it('still runs an item whose source was removed while the palette was open', async () => {
+    const { svc } = setup();
+    svc.open();
+    svc.setQuery('hello');
+    const option = { ...opt(svc, 'Say hello'), sourceId: 'gone' };
+    await svc.select(option);
+    expect(ran).toEqual(['hello']);
+  });
+
   it('survives a recent storage that rejects, throws or returns garbage', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const broken: SpotlightRecentStorage = {
