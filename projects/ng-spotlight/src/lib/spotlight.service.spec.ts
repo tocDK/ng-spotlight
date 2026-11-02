@@ -255,6 +255,26 @@ describe('SpotlightService', () => {
     expect(navigate).toHaveBeenCalledWith(route);
   });
 
+  it('boosts a Recent item only in the source it was picked from, not a same-id item elsewhere', async () => {
+    const reports = (id: string) =>
+      staticSource({
+        id,
+        group: id,
+        items: [
+          { id: 'y', title: 'Report', action: { route: `/${id}/y` } },
+          { id: 'x', title: 'Reports', action: { route: `/${id}/x` } },
+        ],
+      });
+    const storage = memoryRecent([{ id: 'x', title: 'Reports', group: 'a', sourceId: 'a', action: { route: '/a/x' } }]);
+    const { svc } = setup({ sources: [reports('a'), reports('b')], recent: { storage } });
+    svc.open();
+    await flush();
+    svc.setQuery('rep');
+    const order = (group: string) => svc.groups().find((g) => g.id === group)?.items.map((i) => i.id);
+    expect(order('a')).toEqual(['x', 'y']);
+    expect(order('b')).toEqual(['y', 'x']);
+  });
+
   it('survives a recent storage that rejects, throws or returns garbage', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const broken: SpotlightRecentStorage = {

@@ -445,7 +445,8 @@ export class SpotlightService {
       sources: this.regs(),
       input$: this.input$,
       retry$: this.retry$,
-      recentIds: () => new Set(this._recent().map((entry) => entry.id)),
+      recentIds: (sourceId) =>
+        new Set(this._recent().flatMap((entry) => (entry.sourceId === sourceId ? [entry.id] : []))),
       onError: (error, source) => this.report(error, source),
       learned: this.learnedGroups,
       placeholderLabel: (state) => (state === 'loading' ? this.texts.loading() : this.texts.error()),
