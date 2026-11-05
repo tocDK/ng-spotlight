@@ -35,6 +35,14 @@ import {
 
 const PHONE_QUERY = '(max-width: 600px)';
 
+/** What a mouse press must keep its default for: a text caret, a native select, an editable region. */
+const EDITABLE = 'input, textarea, select, [contenteditable]:not([contenteditable="false" i])';
+
+/** Duck-typed so an overlay rendered into another window's document still matches. */
+function isEditable(node: EventTarget): boolean {
+  return typeof (node as Element).matches === 'function' && (node as Element).matches(EDITABLE);
+}
+
 /** The palette. Place it once in the app shell. */
 @Component({
   selector: 'spotlight-host',
@@ -46,7 +54,7 @@ const PHONE_QUERY = '(max-width: 600px)';
       <spotlight-theme-default />
     }
     <ng-template #panel>
-      <div class="sp-dialog" role="dialog" aria-modal="true" [attr.aria-label]="texts.placeholder()">
+      <div class="sp-dialog" role="dialog" aria-modal="true" [attr.aria-label]="texts.placeholder()" (mousedown)="onPanelMousedown($event)">
         <div class="sp-input">
           <ng-container *ngComponentOutlet="parts.input; inputs: { ctx: inputCtx() }" />
         </div>
@@ -59,7 +67,6 @@ const PHONE_QUERY = '(max-width: 600px)';
                 tabindex="-1"
                 [attr.aria-pressed]="chip.id === svc.chip()"
                 [attr.aria-label]="chip.label"
-                (mousedown)="$event.preventDefault()"
                 (click)="svc.setChip(chip.id)"
               >
                 <ng-container
@@ -86,7 +93,6 @@ const PHONE_QUERY = '(max-width: 600px)';
                   role="option"
                   [id]="opt.domId"
                   [attr.aria-selected]="opt.domId === activeId()"
-                  (mousedown)="$event.preventDefault()"
                   (mousemove)="svc.setActive(opt.key)"
                   (click)="choose(opt, $event)"
                 >
@@ -262,6 +268,15 @@ export class SpotlightHost {
   /** @internal */
   protected choose(option: SpotlightOption, event: MouseEvent): void {
     void this.svc.select(option, { newTab: event.ctrlKey || event.metaKey });
+  }
+
+  /** @internal A press on a non-editable part of the palette must not move keyboard focus out of the field. */
+  protected onPanelMousedown(event: MouseEvent): void {
+    for (const node of event.composedPath()) {
+      if (node === event.currentTarget) break;
+      if (isEditable(node)) return;
+    }
+    event.preventDefault();
   }
 
   /** @internal */
