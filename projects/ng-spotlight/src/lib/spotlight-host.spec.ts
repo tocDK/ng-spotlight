@@ -320,6 +320,49 @@ describe('SpotlightHost', () => {
     expect(rowTitles()).toEqual(['Order 1001']);
   });
 
+  describe('mousedown keeps keyboard focus in the search field', () => {
+    /** Presses the mouse on `target` and reports whether the focus-moving default was cancelled. */
+    function mousedownPrevented(target: Element): boolean {
+      const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+      target.dispatchEvent(event);
+      return event.defaultPrevented;
+    }
+
+    async function openWithResults() {
+      const { svc, stable } = await setup();
+      svc.open();
+      await stable();
+      typeInto('o');
+      await stable();
+    }
+
+    it('cancels it on the footer', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(q('.sp-footer')!)).toBe(true);
+    });
+
+    it('cancels it on the blank listbox itself', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(q('[role="listbox"]')!)).toBe(true);
+    });
+
+    it('leaves the search input its mouse defaults', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(combobox())).toBe(false);
+    });
+
+    it('still cancels it on an option row', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(q('[role="option"]')!)).toBe(true);
+    });
+
+    it('still cancels it on a chip', async () => {
+      await openWithResults();
+      expect(qa('.sp-chip-button').length).toBeGreaterThan(1);
+      expect(mousedownPrevented(q('.sp-chip-button')!)).toBe(true);
+    });
+  });
+
   it('shows an error row with Retry that re-runs the source on Enter', async () => {
     let fail = true;
     const flaky: SpotlightSource = {
