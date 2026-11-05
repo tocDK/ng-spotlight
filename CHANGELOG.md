@@ -7,6 +7,13 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [21.0.2] - 2026-11-05
+
+### Fixed
+- Pressing the mouse on a part of the palette that isn't a text field (the footer, the blank part of the result list,
+  group headers, the empty state, a custom footer) no longer moves keyboard focus out of the search field, so typing
+  keeps landing in it. Option rows and chips already behaved this way; the palette now does it with one handler.
+
 ## [21.0.1] - 2026-11-02
 
 First release published by GitHub Actions through npm trusted publishing, with provenance. No code changes from
@@ -54,6 +61,7 @@ candidate's `@tocdk/ng-spotlight` name was never published).
   be stored as JSON is kept by id and resolved through its source.
 - The Recent ranking boost is keyed on source and item id, so a same-id item in another source is not boosted.
 
-[Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.0.1...HEAD
+[Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.0.2...HEAD
+[21.0.2]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.2
 [21.0.1]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.1
 [21.0.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.0
