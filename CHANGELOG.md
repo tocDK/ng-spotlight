@@ -13,6 +13,10 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 - Pressing the mouse on a part of the palette that isn't a text field (the footer, the blank part of the result list,
   group headers, the empty state, a custom footer) no longer moves keyboard focus out of the search field, so typing
   keeps landing in it. Option rows and chips already behaved this way; the palette now does it with one handler.
+- Side effects of that: buttons and links in custom `spotlightFooter` / `spotlightEmpty` / `spotlightItem` templates no
+  longer take focus on a mouse press (their `click` still fires), and text in the footer, empty state and group
+  headers can't be selected with the mouse. Text fields, selects and editable regions inside the palette keep their
+  normal mouse behaviour, including inside custom row templates, which the old per-row handler blocked.
 
 ## [21.0.1] - 2026-11-02
 
