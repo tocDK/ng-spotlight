@@ -35,6 +35,14 @@ import {
 
 const PHONE_QUERY = '(max-width: 600px)';
 
+/** What a mouse press must keep its default for: a text caret, a native select, an editable region. */
+const EDITABLE = 'input, textarea, select, [contenteditable]:not([contenteditable="false" i])';
+
+/** Duck-typed so an overlay rendered into another window's document still matches. */
+function isEditable(node: EventTarget): boolean {
+  return typeof (node as Element).matches === 'function' && (node as Element).matches(EDITABLE);
+}
+
 /** The palette. Place it once in the app shell. */
 @Component({
   selector: 'spotlight-host',
@@ -264,8 +272,10 @@ export class SpotlightHost {
 
   /** @internal A press on a non-editable part of the palette must not move keyboard focus out of the field. */
   protected onPanelMousedown(event: MouseEvent): void {
-    const target = event.target;
-    if (target instanceof Element && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+    for (const node of event.composedPath()) {
+      if (node === event.currentTarget) break;
+      if (isEditable(node)) return;
+    }
     event.preventDefault();
   }
 
