@@ -7,6 +7,23 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [21.1.0] - 2026-11-27
+
+### Added
+- `SpotlightService.clearRecent()` empties Recent at once, in memory and in storage, and `reloadRecent()` drops the
+  in-memory list at once and reads storage again (it resolves when the new list is in place). An app with a
+  per-user `SpotlightRecentStorage` calls `reloadRecent()` on logout or a user switch, so the previous user's items
+  never show, whatever the render timing (#5). A Recent load that is still running when either is called no longer
+  brings the old list back.
+
+### Fixed
+- The host elements of the renderer parts (input, chip, group header, row, badge), in the core and in the PrimeNG
+  adapter, are now `display: contents`, so the core's layout rules reach the part markup. With PrimeNG the search
+  field fills the input bar instead of staying about 200 px wide, a row icon sits inline next to its title instead of
+  above it, and a group total keeps its gap from the label instead of reading `ORDERS1` (#4).
+- A source error is logged with the source id as an argument (`'source "%s" failed'`), so a `%` in an id is not read
+  as a console format specifier.
+
 ## [21.0.1] - 2026-11-02
 
 First release published by GitHub Actions through npm trusted publishing, with provenance. No code changes from
@@ -54,6 +71,7 @@ candidate's `@tocdk/ng-spotlight` name was never published).
   be stored as JSON is kept by id and resolved through its source.
 - The Recent ranking boost is keyed on source and item id, so a same-id item in another source is not boosted.
 
-[Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.0.1...HEAD
+[Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.1.0...HEAD
+[21.1.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.1.0
 [21.0.1]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.1
 [21.0.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.0
