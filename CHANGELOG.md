@@ -24,6 +24,17 @@ minor and patch follow [Semantic Versioning](https://semver.org/).
 - A source error is logged with the source id as an argument (`'source "%s" failed'`), so a `%` in an id is not read
   as a console format specifier.
 
+## [21.0.2] - 2026-11-05
+
+### Fixed
+- Pressing the mouse on a part of the palette that isn't a text field (the footer, the blank part of the result list,
+  group headers, the empty state, a custom footer) no longer moves keyboard focus out of the search field, so typing
+  keeps landing in it. Option rows and chips already behaved this way; the palette now does it with one handler.
+- Side effects of that: buttons and links in custom `spotlightFooter` / `spotlightEmpty` / `spotlightItem` templates no
+  longer take focus on a mouse press (their `click` still fires), and text in the footer, empty state and group
+  headers can't be selected with the mouse. Text fields, selects and editable regions inside the palette keep their
+  normal mouse behaviour, including inside custom row templates, which the old per-row handler blocked.
+
 ## [21.0.1] - 2026-11-02
 
 First release published by GitHub Actions through npm trusted publishing, with provenance. No code changes from
@@ -73,5 +84,6 @@ candidate's `@tocdk/ng-spotlight` name was never published).
 
 [Unreleased]: https://github.com/tocDK/ng-spotlight/compare/v21.1.0...HEAD
 [21.1.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.1.0
+[21.0.2]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.2
 [21.0.1]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.1
 [21.0.0]: https://github.com/tocDK/ng-spotlight/releases/tag/v21.0.0
