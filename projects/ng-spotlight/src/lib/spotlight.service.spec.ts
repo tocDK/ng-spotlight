@@ -286,6 +286,84 @@ describe('SpotlightService', () => {
     expect(ran).toEqual(['hello']);
   });
 
+  describe('clearRecent() / reloadRecent()', () => {
+    const dash: SpotlightRecentEntry = { id: 'dash', title: 'Dashboard', group: 'Commands', sourceId: 'static:Commands', action: { route: '/dashboard' } };
+    const docs: SpotlightRecentEntry = { id: 'docs', title: 'Documentation', group: 'Commands', sourceId: 'static:Commands', action: { url: 'https://example.com/docs' } };
+    const recentTitles = (svc: SpotlightService) => svc.groups().find((g) => g.id === '__recent')?.items.map((i) => i.title) ?? [];
+
+    it('clearRecent() empties Recent at once, in memory and in storage', async () => {
+      const storage = memoryRecent([dash]);
+      const { svc } = setup({ recent: { storage } });
+      svc.open();
+      await flush();
+      expect(recentTitles(svc)).toEqual(['Dashboard']);
+      svc.clearRecent();
+      expect(recentTitles(svc)).toEqual([]);
+      await flush();
+      expect(storage.saved).toEqual([[]]);
+      svc.close();
+      svc.open();
+      await flush();
+      expect(recentTitles(svc)).toEqual([]);
+    });
+
+    it('reloadRecent() drops the old list synchronously and then shows what storage holds now', async () => {
+      let user = 'a';
+      const lists: Record<string, SpotlightRecentEntry[]> = { a: [dash], b: [docs] };
+      const storage: SpotlightRecentStorage = { load: () => Promise.resolve(lists[user]), save: () => Promise.resolve() };
+      const { svc } = setup({ recent: { storage } });
+      svc.open();
+      await flush();
+      expect(recentTitles(svc)).toEqual(['Dashboard']);
+      user = 'b';
+      const done = svc.reloadRecent();
+      expect(recentTitles(svc)).toEqual([]);
+      await done;
+      expect(recentTitles(svc)).toEqual(['Documentation']);
+    });
+
+    it('a load that was still running when Recent was cleared or reloaded does not bring the old list back', async () => {
+      const pending: Array<(entries: SpotlightRecentEntry[]) => void> = [];
+      const storage: SpotlightRecentStorage = {
+        load: () => new Promise((resolve) => pending.push(resolve)),
+        save: () => Promise.resolve(),
+      };
+      const { svc } = setup({ recent: { storage } });
+      svc.open();
+      svc.clearRecent();
+      pending[0]([dash]);
+      await flush();
+      expect(recentTitles(svc)).toEqual([]);
+
+      const done = svc.reloadRecent();
+      pending[0]([dash]);
+      pending[1]([docs]);
+      await done;
+      await flush();
+      expect(recentTitles(svc)).toEqual(['Documentation']);
+    });
+
+    it('reloadRecent() warns and leaves Recent empty when storage rejects', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const storage: SpotlightRecentStorage = { load: () => Promise.reject(new Error('nope')), save: () => Promise.resolve() };
+      const { svc } = setup({ recent: { storage } });
+      await svc.reloadRecent();
+      svc.open();
+      await flush();
+      expect(recentTitles(svc)).toEqual([]);
+      expect(warn).toHaveBeenCalled();
+    });
+
+    it('clearRecent() warns when storage cannot save', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const storage: SpotlightRecentStorage = { load: () => Promise.resolve([]), save: () => Promise.reject(new Error('full')) };
+      const { svc } = setup({ recent: { storage } });
+      svc.clearRecent();
+      await flush();
+      expect(warn).toHaveBeenCalledWith('[ng-spotlight] could not save recent items', new Error('full'));
+    });
+  });
+
   it('keeps a Recent route with matrix params across a reload', async () => {
     const route = ['/customers', 42, { tab: 'orders' }];
     const matrix = staticSource({ id: 'matrix', group: 'Customers', items: [{ id: 'c42', title: 'Customer 42', action: { route } }] });
