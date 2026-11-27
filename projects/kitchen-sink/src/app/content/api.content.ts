@@ -11,7 +11,7 @@ export const API_CONTENT: PageContent = {
 | Export | What it is |
 |---|---|
 | \`provideSpotlight(config \\| () => config)\` | Environment providers. \`SpotlightConfig\`: \`hotkeys\`, \`texts\`, \`recent\`, \`http\`, \`theme\`, \`onError\`, \`sources\`, \`isolated\` |
-| \`SpotlightService\` | \`open(query?)\`, \`close()\`, \`isOpen\` (signal), \`selected\` (Observable); nothing else is public |
+| \`SpotlightService\` | \`open(query?)\`, \`close()\`, \`isOpen\` (signal), \`selected\` (Observable), \`clearRecent()\`, \`reloadRecent()\`; nothing else is public |
 | \`SpotlightHost\` | \`<spotlight-host>\`, place once in the shell |
 | \`SpotlightTrigger\` | \`spotlightTrigger\` directive: opens the palette on click |
 | \`SpotlightItemTemplate\`, \`SpotlightItemTemplateContext\` | \`<ng-template spotlightItem="group" let-item>\` row templates |

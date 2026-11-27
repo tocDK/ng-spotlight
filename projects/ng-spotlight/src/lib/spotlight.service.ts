@@ -65,7 +65,8 @@ let nextInstanceId = 0;
 const IGNORED_IN_CHILD = ['hotkeys', 'texts', 'recent', 'theme', 'onError'] as const;
 
 const defaultOnError = (error: unknown, source: SpotlightSource): void => {
-  console.error(`[ng-spotlight] source "${source.id}" failed`, error);
+  // The id is an argument, not part of the format string, so a "%" in it is printed as is.
+  console.error('[ng-spotlight] source "%s" failed', source.id, error);
 };
 
 function parseHotkeys(specs: readonly string[]): ParsedHotkey[] {
@@ -120,6 +121,8 @@ export class SpotlightService {
   readonly chip = this._chip.asReadonly();
   private readonly _results = signal<readonly SpotlightGroupState[]>([]);
   private readonly _recent = signal<readonly SpotlightRecentEntry[]>([]);
+  /** Counts Recent loads, so a load that finishes after a newer load or a clear is ignored. */
+  private recentLoad = 0;
   private readonly _resolvedRuns = signal<ReadonlyMap<string, SpotlightItem>>(new Map());
   private readonly _activeKey = signal<string | null>(null);
   private readonly _chipGroups = signal<readonly SpotlightChip[]>([]);
@@ -316,6 +319,28 @@ export class SpotlightService {
     this._activeKey.set(null);
   }
 
+  /**
+   * Empties Recent now, in memory and in storage. A load that is still running is dropped, so the old list
+   * does not come back.
+   */
+  clearRecent(): void {
+    this.recentLoad++;
+    this._recent.set([]);
+    const storage = this._settings.storage;
+    void Promise.resolve()
+      .then(() => storage.save([]))
+      .catch((error: unknown) => console.warn('[ng-spotlight] could not save recent items', error));
+  }
+
+  /**
+   * Drops the Recent list in memory at once and reads it again from storage, for example after the user changed
+   * and a per-user storage now holds another list. Resolves when the new list is in place.
+   */
+  reloadRecent(): Promise<void> {
+    this._recent.set([]);
+    return this.loadRecent();
+  }
+
   /** @internal */
   toggle(): void {
     if (this._isOpen()) this.close();
@@ -439,6 +464,7 @@ export class SpotlightService {
   }
 
   private async loadRecent(): Promise<void> {
+    const load = ++this.recentLoad;
     let loaded: unknown;
     try {
       loaded = await this._settings.storage.load();
@@ -449,6 +475,7 @@ export class SpotlightService {
     const entries = Array.isArray(loaded)
       ? (loaded as unknown[]).filter(isRecentEntry).slice(0, this._settings.recentMax)
       : [];
+    if (load !== this.recentLoad) return;
     this._recent.set(entries);
     await this.resolveRunEntries(entries);
   }

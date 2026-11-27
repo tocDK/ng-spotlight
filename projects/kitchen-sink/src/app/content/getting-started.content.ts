@@ -38,8 +38,10 @@ palette in the top bar is configured exactly like this, plus a few links.
       id: 'service',
       title: 'Open it from code',
       markdown: `
-\`SpotlightService\` exposes \`open(query?)\`, \`close()\`, \`isOpen\` (a signal) and \`selected\` (an Observable of the
-chosen \`SpotlightItem\`), and nothing else: the palette's internal state is not public API. \`SpotlightTrigger\` (\`spotlightTrigger\`, optionally \`spotlightTrigger="#"\`) opens it on click.
+\`SpotlightService\` exposes \`open(query?)\`, \`close()\`, \`isOpen\` (a signal), \`selected\` (an Observable of the
+chosen \`SpotlightItem\`), \`clearRecent()\` (empties Recent in memory and in storage) and \`reloadRecent()\` (drops the
+list in memory at once and reads storage again, e.g. on logout or a user switch with a per-user storage), and nothing
+else: the palette's internal state is not public API. \`SpotlightTrigger\` (\`spotlightTrigger\`, optionally \`spotlightTrigger="#"\`) opens it on click.
 
 Call \`provideSpotlight()\` again in a lazy route's \`providers\` to add sources there; they disappear when that
 injector is destroyed. A child call only adds \`sources\` (and \`http\` defaults for them): its \`texts\`, \`hotkeys\`,

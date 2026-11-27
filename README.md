@@ -167,7 +167,7 @@ The whole public API, with every member, is snapshotted in [`api/ng-spotlight.ap
 | Export | What it is |
 |---|---|
 | `provideSpotlight(config \| () => config)` | Sets up a palette (`SpotlightConfig`: `hotkeys`, `texts`, `recent`, `http`, `theme`, `onError`, `sources`, `isolated`) |
-| `SpotlightService` | `open(query?)`, `close()`, `isOpen` (signal), `selected` (Observable of the chosen item). Nothing else is public |
+| `SpotlightService` | `open(query?)`, `close()`, `isOpen` (signal), `selected` (Observable of the chosen item), `clearRecent()` (empties Recent in memory and storage), `reloadRecent()` (drops the in-memory list and reads storage again, e.g. after a user switch). Nothing else is public |
 | `<spotlight-host>`, `spotlightTrigger` | The palette, and a directive that opens it on click (`spotlightTrigger="#"` sets a query) |
 | `spotlightItem`, `spotlightEmpty`, `spotlightFooter` | Templates, with `SpotlightItemTemplateContext` and `SpotlightEmptyTemplateContext` |
 | `routeSource`, `staticSource`, `httpSource`, `spotlightRouteAudit` | Built-in sources and the route audit, with their `*Options` types |

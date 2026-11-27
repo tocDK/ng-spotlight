@@ -440,7 +440,7 @@ describe('SpotlightService', () => {
     svc.open();
     svc.setQuery('x');
     await flush();
-    expect(error).toHaveBeenCalledWith('[ng-spotlight] source "broken" failed', new Error('down'));
+    expect(error).toHaveBeenCalledWith('[ng-spotlight] source "%s" failed', 'broken', new Error('down'));
   });
 
   it('survives an onError handler that throws', async () => {
