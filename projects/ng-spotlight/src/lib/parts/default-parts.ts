@@ -9,12 +9,17 @@ import type {
   SpotlightRowContext,
 } from '../renderer';
 
-/** A part's host box sits between the core's flex containers and the part's markup; keep it out of layout. */
-const PART_HOST = ':host { display: contents; }';
+/**
+ * A part's host element sits between the core's flex containers (.sp-input, .sp-option, .sp-group-header) and the
+ * part's own markup; `display: contents` keeps it out of layout. A host binding rather than a shared `:host` style:
+ * identical inline component styles across components stall the Angular application builder.
+ */
+const PART_HOST = { style: 'display: contents' };
+
 
 @Component({
   selector: 'spotlight-default-input',
-  styles: [PART_HOST],
+  host: PART_HOST,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <input
@@ -47,7 +52,7 @@ export class SpotlightDefaultInput {
 
 @Component({
   selector: 'spotlight-default-chip',
-  styles: [PART_HOST],
+  host: PART_HOST,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span class="sp-chip" [class.sp-chip-active]="ctx().active">{{ ctx().label }}</span>`,
 })
@@ -57,7 +62,7 @@ export class SpotlightDefaultChip {
 
 @Component({
   selector: 'spotlight-default-group-header',
-  styles: [PART_HOST],
+  host: PART_HOST,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <span class="sp-group-label">{{ ctx().label }}</span>
@@ -83,7 +88,7 @@ export class SpotlightDefaultGroupHeader {
 
 @Component({
   selector: 'spotlight-default-badge',
-  styles: [PART_HOST],
+  host: PART_HOST,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span class="sp-badge" [attr.data-tone]="ctx().badge.tone ?? 'info'">{{ ctx().badge.label }}</span>`,
 })
@@ -93,7 +98,7 @@ export class SpotlightDefaultBadge {
 
 @Component({
   selector: 'spotlight-default-row',
-  styles: [PART_HOST],
+  host: PART_HOST,
   imports: [NgComponentOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
