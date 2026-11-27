@@ -320,6 +320,102 @@ describe('SpotlightHost', () => {
     expect(rowTitles()).toEqual(['Order 1001']);
   });
 
+  describe('mousedown keeps keyboard focus in the search field', () => {
+    /** Presses the mouse on `target` and reports whether the focus-moving default was cancelled. */
+    function mousedownPrevented(target: Element): boolean {
+      const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+      target.dispatchEvent(event);
+      return event.defaultPrevented;
+    }
+
+    async function openWithResults() {
+      const { svc, stable } = await setup();
+      svc.open();
+      await stable();
+      typeInto('o');
+      await stable();
+    }
+
+    it('cancels it on the footer', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(q('.sp-footer')!)).toBe(true);
+    });
+
+    it('cancels it on the blank listbox itself', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(q('[role="listbox"]')!)).toBe(true);
+    });
+
+    it('leaves the search input its mouse defaults', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(combobox())).toBe(false);
+    });
+
+    it('still cancels it on an option row', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(q('[role="option"]')!)).toBe(true);
+    });
+
+    it('still cancels it on a chip', async () => {
+      await openWithResults();
+      expect(qa('.sp-chip-button').length).toBeGreaterThan(1);
+      expect(mousedownPrevented(q('.sp-chip-button')!)).toBe(true);
+    });
+
+    describe('editable parts keep their mouse defaults', () => {
+      const editables: Record<string, string> = {
+        textarea: '<textarea></textarea>',
+        select: '<select><option>a</option></select>',
+        'contenteditable=""': '<div contenteditable="">x</div>',
+        'contenteditable="plaintext-only"': '<div contenteditable="plaintext-only">x</div>',
+        'contenteditable="TRUE"': '<div contenteditable="TRUE">x</div>',
+        'child span of a contenteditable': '<div contenteditable="true"><span>x</span></div>',
+      };
+      for (const [name, html] of Object.entries(editables)) {
+        it(`does not cancel it on a ${name}`, async () => {
+          await openWithResults();
+          const host = q('.sp-footer')!;
+          host.insertAdjacentHTML('beforeend', html);
+          expect(mousedownPrevented(host.lastElementChild!.querySelector('span') ?? host.lastElementChild!)).toBe(false);
+        });
+      }
+
+      it('does not cancel it on an input inside an open shadow root', async () => {
+        await openWithResults();
+        const shadowHost = document.createElement('div');
+        q('.sp-footer')!.append(shadowHost);
+        const input = document.createElement('input');
+        shadowHost.attachShadow({ mode: 'open' }).append(input);
+        const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true, composed: true });
+        input.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(false);
+      });
+
+      it('still cancels it on contenteditable="false"', async () => {
+        await openWithResults();
+        const host = q('.sp-footer')!;
+        host.insertAdjacentHTML('beforeend', '<div contenteditable="false">x</div>');
+        expect(mousedownPrevented(host.lastElementChild!)).toBe(true);
+      });
+    });
+
+    it('cancels it on the input wrapper padding and on a group header', async () => {
+      await openWithResults();
+      expect(mousedownPrevented(q('.sp-input')!)).toBe(true);
+      expect(mousedownPrevented(q('.sp-group-header')!)).toBe(true);
+    });
+
+    it('cancels it on a custom footer and a custom empty state', async () => {
+      const { svc, stable } = await setup({}, TemplatedWrapper);
+      svc.open();
+      await stable();
+      expect(mousedownPrevented(q('.tpl-footer')!)).toBe(true);
+      typeInto('zzz');
+      await stable();
+      expect(mousedownPrevented(q('.tpl-empty')!)).toBe(true);
+    });
+  });
+
   it('shows an error row with Retry that re-runs the source on Enter', async () => {
     let fail = true;
     const flaky: SpotlightSource = {
