@@ -148,6 +148,24 @@ describe('@tocdk-oss/ng-spotlight/primeng', () => {
     expect(await headerText(true)).toBe('Customers, 2');
   });
 
+  // #4: a part's host element is the one box between the core's flex containers (.sp-input, .sp-option,
+  // .sp-group-header) and the part's own markup. It must not take part in layout, or the field doesn't grow, the row
+  // icon wraps above the title and the group total fuses with its label.
+  for (const [renderer, prefix] of [
+    ['core', 'spotlight-default'],
+    ['PrimeNG', 'spotlight-primeng'],
+  ] as const) {
+    it(`renders the ${renderer} part hosts with display: contents`, async () => {
+      const { fixture } = await openWith(renderer === 'PrimeNG');
+      for (const part of ['input', 'chip', 'group-header', 'row', 'badge']) {
+        const hosts = Array.from(document.querySelectorAll(`${prefix}-${part}`));
+        expect(hosts.length, `${prefix}-${part} rendered`).toBeGreaterThan(0);
+        for (const host of hosts) expect(getComputedStyle(host).display, `${prefix}-${part}`).toBe('contents');
+      }
+      fixture.destroy();
+    });
+  }
+
   it('has no axe violations with the open PrimeNG overlay', async () => {
     const { fixture } = await openWith(true);
     await expectNoAxeViolations();

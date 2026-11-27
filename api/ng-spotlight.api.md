@@ -232,6 +232,8 @@ class SpotlightService {
   constructor();
   open(query?: string): void;
   close(): void;
+  clearRecent(): void;
+  reloadRecent(): Promise<void>;
 }
 
 interface SpotlightSource {

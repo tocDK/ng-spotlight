@@ -14,6 +14,14 @@ import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 
+/**
+ * A part's host element sits between the core's flex containers (.sp-input, .sp-option, .sp-group-header) and the
+ * part's own markup; `display: contents` keeps it out of layout. A host binding rather than a shared `:host` style:
+ * identical inline component styles across components stall the Angular application builder.
+ */
+const PART_HOST = { style: 'display: contents' };
+
+
 export type SpotlightPrimeTagSeverity = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast';
 
 export function toneToSeverity(tone: SpotlightBadgeTone | undefined): SpotlightPrimeTagSeverity {
@@ -54,6 +62,7 @@ export const SPOTLIGHT_PRIMENG_CSS = `
 
 @Component({
   selector: 'spotlight-primeng-input',
+  host: PART_HOST,
   imports: [IconField, InputIcon, InputText],
   encapsulation: ViewEncapsulation.None,
   styles: [SPOTLIGHT_PRIMENG_CSS],
@@ -92,6 +101,7 @@ export class SpotlightPrimeNgInput {
 
 @Component({
   selector: 'spotlight-primeng-chip',
+  host: PART_HOST,
   imports: [Chip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span aria-hidden="true"><p-chip [label]="ctx().label" [styleClass]="ctx().active ? 'sp-primeng-chip-active' : ''" /></span>`,
@@ -102,6 +112,7 @@ export class SpotlightPrimeNgChip {
 
 @Component({
   selector: 'spotlight-primeng-group-header',
+  host: PART_HOST,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <span class="sp-group-label">{{ ctx().label }}</span>
@@ -127,6 +138,7 @@ export class SpotlightPrimeNgGroupHeader {
 
 @Component({
   selector: 'spotlight-primeng-badge',
+  host: PART_HOST,
   imports: [Tag],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<p-tag [value]="ctx().badge.label" [severity]="severity()" />`,
@@ -139,6 +151,7 @@ export class SpotlightPrimeNgBadge {
 
 @Component({
   selector: 'spotlight-primeng-row',
+  host: PART_HOST,
   imports: [NgComponentOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
