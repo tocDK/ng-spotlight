@@ -14,6 +14,8 @@ import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
 
+const PART_HOST = ':host { display: contents; }';
+
 export type SpotlightPrimeTagSeverity = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast';
 
 export function toneToSeverity(tone: SpotlightBadgeTone | undefined): SpotlightPrimeTagSeverity {
@@ -46,6 +48,8 @@ export const SPOTLIGHT_PRIMENG_CSS = `
   --sp-font: inherit;
 }
 .sp-primeng-backdrop { --sp-backdrop: var(--p-mask-background, rgba(0, 0, 0, 0.4)); background: var(--sp-backdrop); }
+/* Part hosts sit between the core's flex containers and the part markup; keep them out of layout. */
+spotlight-primeng-input { display: contents; }
 .sp-primeng .sp-input { padding: 12px; }
 .sp-primeng .sp-primeng-field { display: block; flex: 1; }
 .sp-primeng .sp-primeng-field input { width: 100%; box-sizing: border-box; }
@@ -92,6 +96,7 @@ export class SpotlightPrimeNgInput {
 
 @Component({
   selector: 'spotlight-primeng-chip',
+  styles: [PART_HOST],
   imports: [Chip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span aria-hidden="true"><p-chip [label]="ctx().label" [styleClass]="ctx().active ? 'sp-primeng-chip-active' : ''" /></span>`,
@@ -102,6 +107,7 @@ export class SpotlightPrimeNgChip {
 
 @Component({
   selector: 'spotlight-primeng-group-header',
+  styles: [PART_HOST],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <span class="sp-group-label">{{ ctx().label }}</span>
@@ -127,6 +133,7 @@ export class SpotlightPrimeNgGroupHeader {
 
 @Component({
   selector: 'spotlight-primeng-badge',
+  styles: [PART_HOST],
   imports: [Tag],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<p-tag [value]="ctx().badge.label" [severity]="severity()" />`,
@@ -139,6 +146,7 @@ export class SpotlightPrimeNgBadge {
 
 @Component({
   selector: 'spotlight-primeng-row',
+  styles: [PART_HOST],
   imports: [NgComponentOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
